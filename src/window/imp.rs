@@ -4,7 +4,7 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, glib};
 use gtk::{CompositeTemplate, Entry, ListView};
-use std::cell::RefCell;
+use std::cell::{RefCell};
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
@@ -35,8 +35,7 @@ impl ObjectImpl for Window {
     fn constructed(&self, obj: &Self::Type) {
         self.parent_constructed(obj);
 
-        obj.setup_items();
-        obj.setup_callbacks();
+        obj.setup_window();
         obj.setup_factory();
 
         obj.set_decorated(false);

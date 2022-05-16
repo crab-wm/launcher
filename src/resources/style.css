@@ -66,3 +66,8 @@ row:selected > box {
     font-weight: bold;
     border-left: 7px @accent-color solid;
 }
+
+.title {
+    font-size: 32px;
+    font-weight: bold;
+}

@@ -3,8 +3,8 @@ use crate::crab_row::CrabRow;
 use gtk::glib::{clone, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, Inhibit, ListView, SelectionModel, SignalListItemFactory, SingleSelection};
-use gtk::{glib, Application};
+use gtk::{CustomFilter, FilterListModel, gio, Inhibit, SignalListItemFactory, SingleSelection};
+use gtk::{glib, Application, FilterChange};
 
 mod imp;
 
@@ -28,13 +28,22 @@ impl Window {
             .expect(ERROR_ITEMS)
     }
 
-    fn setup_items(&self) {
+    fn setup_window(&self) {
         let model = gio::ListStore::new(gio::AppInfo::static_type());
         gio::AppInfo::all().iter().for_each(|app_info| {
             model.append(app_info);
         });
 
         self.imp().current_items.replace(Some(model));
+
+        let filter = CustomFilter::new(clone!(@strong self as window => move |obj| {
+            let crab_entry = obj.downcast_ref::<gio::AppInfo>().unwrap();
+            let search = window.imp().entry.buffer().text();
+
+            if !search.is_empty() { crab_entry.name().to_lowercase().contains(&search.as_str().to_lowercase()) } else { true }
+        }));
+
+        let filter_model = FilterListModel::new(Some(&self.current_items()), Some(&filter));
 
         let sorter = gtk::CustomSorter::new(move |obj1, obj2| {
             let app_info1 = obj1.downcast_ref::<gio::AppInfo>().unwrap();
@@ -46,41 +55,45 @@ impl Window {
                 .cmp(&app_info2.name().to_lowercase())
                 .into()
         });
-        let sorted_model = gtk::SortListModel::new(Some(&self.current_items()), Some(&sorter));
+        let sorted_model = gtk::SortListModel::new(Some(&filter_model), Some(&sorter));
 
         let selection_model = SingleSelection::new(Some(&sorted_model));
         self.imp().crab_items_list.set_model(Some(&selection_model));
-    }
 
-    fn setup_callbacks(&self) {
+        self.imp().entry.connect_changed(clone!(@strong self as window => move |_| {
+            filter.changed(FilterChange::Different);
+        }));
+
         let controller = gtk::EventControllerKey::new();
-        controller.connect_key_pressed(clone!(@strong self as window => move |_, _, keycode, _| {
+        controller.connect_key_pressed(clone!(@strong self as window => move |_, key, keycode, _| {
             match keycode {
-                111 => {
-                    window.imp().crab_items_list.grab_focus();
-                    select_item(&window.imp().crab_items_list.model().unwrap(), SelectionType::Previous);
-                    Inhibit(true)
-                }
                 116 => {
-                    window.imp().crab_items_list.grab_focus();
-                    select_item(&window.imp().crab_items_list.model().unwrap(), SelectionType::Next);
-                    Inhibit(true)
-                }
-                23 => {
-                    activate_item(&window.imp().crab_items_list);
-                    Inhibit(true)
+                    window.imp().crab_items_list.model().unwrap().select_item(1, false);
                 }
                 9 => {
                     window.close();
-                    Inhibit(true)
                 }
                 _ => {
-                    println!("{}", keycode);
-                    window.imp().entry.grab_focus();
+                    if keycode != 50 && keycode != 62 {
+                        window.imp().entry.grab_focus();
+                    }
 
-                    Inhibit(false)
+                    if !(key.is_lower() && key.is_upper()) {
+                        if let Some(key_name) = key.name() {
+                            let buffer = window.imp().entry.buffer();
+
+                            let mut content = buffer.text();
+                            content.push(key_name.chars().next().unwrap());
+
+                            buffer.set_text(content.as_str());
+                            window.imp().entry.set_position((content.len()) as i32);
+                            window.imp().entry.set_placeholder_text(None);
+                        }
+                    }
                 }
             }
+
+            Inhibit(false)
         }));
 
         self.add_controller(&controller);
@@ -107,68 +120,5 @@ impl Window {
         });
 
         self.imp().crab_items_list.set_factory(Some(&factory));
-    }
-}
-
-enum SelectionType {
-    Next,
-    Previous,
-}
-
-fn activate_item(tasks: &TemplateChild<ListView>) {
-    let selection_model = tasks.model().unwrap();
-
-    let mut selected_index = 0;
-
-    for i in 0..selection_model.n_items() {
-        let is_selected = selection_model.selection().contains(i);
-
-        if is_selected {
-            break;
-        }
-
-        selected_index += 1;
-    }
-
-    let item = selection_model.item(selected_index as u32).unwrap();
-
-    item.set_property(
-        "completed",
-        !item.property_value("completed").get::<bool>().unwrap(),
-    );
-}
-
-fn select_item(selection_model: &SelectionModel, selection_type: SelectionType) {
-    let selection_value: i32 = match selection_type {
-        SelectionType::Next => 1,
-        SelectionType::Previous => -1,
-    };
-
-    let mut selected_index = 0;
-
-    for i in 0..selection_model.n_items() {
-        let is_selected = selection_model.selection().contains(i);
-
-        if is_selected {
-            break;
-        }
-
-        selected_index += 1;
-    }
-
-    if selection_model.n_items() > 0 {
-        selection_model.select_item(
-            if selected_index + selection_value >= selection_model.n_items() as i32
-                || selected_index + selection_value < 0
-            {
-                match selection_type {
-                    SelectionType::Next => 0,
-                    SelectionType::Previous => selection_model.n_items() - 1,
-                }
-            } else {
-                (selected_index + selection_value).try_into().unwrap()
-            },
-            true,
-        );
     }
 }
