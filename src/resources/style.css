@@ -1,0 +1,68 @@
+@define-color bg-color #1E2128;
+@define-color bg-secondary-color #32363D;
+@define-color text-secondary-color #989A9E;
+@define-color text-color #FFFFFF;
+@define-color accent-color #62AEEF;
+
+* {
+    font-family: "Roboto Mono", monospace;
+}
+
+selection {
+    color: @text-color;
+}
+
+window {
+    background: @bg-color;
+}
+
+entry {
+    border-radius: 0;
+    border: none;
+    outline: none;
+    background-color: @bg-secondary-color;
+    color: @text-color;
+    caret-color: @accent-color;
+}
+
+entry::placeholder {
+    color: @text-secondary-color;
+}
+
+entry image.right:hover {
+    color: @text-color;
+}
+
+entry image.right:active {
+    color: @accent-color;
+}
+
+listview {
+    background: @bg-color;
+}
+
+label {
+    color: @text-color;
+}
+
+row > box {
+    margin: 5px 0;
+    font-size: 15px;
+    border-left: 7px @bg-color solid;
+    padding-left: 15px;
+}
+
+row {
+    outline: none;
+    border: none;
+    background: @bg-color;
+    margin: 0;
+    padding: 0;
+    height: 15px;
+}
+
+row:selected > box {
+    background: @bg-secondary-color;
+    font-weight: bold;
+    border-left: 7px @accent-color solid;
+}
