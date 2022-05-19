@@ -3,8 +3,10 @@ use crate::crab_row::CrabRow;
 use gtk::glib::{clone, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{CustomFilter, FilterListModel, gio, Inhibit, SignalListItemFactory, SingleSelection};
+use gtk::{CustomFilter, FilterListModel, gdk, gio, Inhibit, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
+use gtk::gio::{AppInfo};
+use gtk::gdk::AppLaunchContext;
 
 mod imp;
 
@@ -64,6 +66,50 @@ impl Window {
             filter.changed(FilterChange::Different);
         }));
 
+        self.imp().entry.connect_activate(clone!(@weak self as window => move |_| {
+            let mut selected_index = 0;
+
+            for i in 0..selection_model.n_items() {
+                let is_selected = selection_model.selection().contains(i);
+
+                if is_selected {
+                    break;
+                }
+
+                selected_index += 1;
+            }
+
+            let list_view = &window.imp().crab_items_list;
+
+            let model = list_view.model().unwrap();
+            let app_info = model
+                .item(selected_index)
+                .unwrap()
+                .downcast::<gio::AppInfo>()
+                .unwrap();
+
+            let parent_window = list_view.root().unwrap().downcast::<gtk::Window>().unwrap();
+
+            open_app(&app_info, &parent_window);
+
+            window.close();
+        }));
+
+        self.imp().crab_items_list.connect_activate(clone!(@weak self as window => move |list_view, position| {
+            let model = list_view.model().unwrap();
+            let app_info = model
+                .item(position)
+                .unwrap()
+                .downcast::<gio::AppInfo>()
+                .unwrap();
+
+            let parent_window = list_view.root().unwrap().downcast::<gtk::Window>().unwrap();
+
+            open_app(&app_info, &parent_window);
+
+            window.close();
+        }));
+
         let controller = gtk::EventControllerKey::new();
         controller.connect_key_pressed(clone!(@strong self as window => move |_, key, keycode, _| {
             match keycode {
@@ -120,5 +166,20 @@ impl Window {
         });
 
         self.imp().crab_items_list.set_factory(Some(&factory));
+    }
+}
+
+fn open_app(app_info: &AppInfo, parent_window: &gtk::Window) {
+    let context = parent_window.display().app_launch_context();
+
+    if let Err(err) = app_info.launch(&[], Some(&context)) {
+        gtk::MessageDialog::builder()
+            .text(&format!("Failed to start {}", app_info.name()))
+            .secondary_text(&err.to_string())
+            .message_type(gtk::MessageType::Error)
+            .modal(true)
+            .transient_for(parent_window)
+            .build()
+            .show();
     }
 }
