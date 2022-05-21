@@ -166,7 +166,7 @@ fn open_app(app_info: &AppInfo, parent_window: &gtk::Window, context: &AppLaunch
 
     main_context.spawn_local(clone!(@strong commandline, @strong parent_window, @strong app_info, @strong context => async move {
         if let Err(_) = async_process::Command::new(commandline.as_os_str()).output().await {
-            if let Err(err) = app_info.launch(&[], None) {
+            if let Err(err) = app_info.launch(&[], Some(&context)) {
                 gtk::MessageDialog::builder()
                     .text(&format!("Failed to start {}!", app_info.name()))
                     .secondary_text(&err.to_string())
