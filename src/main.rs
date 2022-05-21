@@ -26,17 +26,7 @@ fn main() {
 fn load_css() {
     let provider = CssProvider::new();
 
-    let config = Config::new().colors;
-
-    let style = format!("
-        @define-color bg-color {};
-        @define-color bg-secondary-color {};
-        @define-color text-secondary-color {};
-        @define-color text-color {};
-        @define-color accent-color {};
-    ", config.bg, config.secondary_bg, config.secondary_text, config.text, config.accent);
-
-    provider.load_from_data(&*[style.as_bytes(), include_bytes!("resources/style.css")].concat());
+    Config::new().apply(&provider);
 
     StyleContext::add_provider_for_display(
         &Display::default().expect(ERROR_DISPLAY),

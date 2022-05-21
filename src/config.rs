@@ -1,4 +1,5 @@
 use std::fs;
+use gtk::CssProvider;
 use crate::consts::*;
 use serde::{Deserialize};
 
@@ -46,5 +47,17 @@ impl Config {
         }
 
         serde_parser.expect(ERROR_BAD_CONFIG)
+    }
+
+    pub fn apply(&self, provider: &CssProvider) {
+        let style = format!("
+            @define-color bg-color {};
+            @define-color bg-secondary-color {};
+            @define-color text-secondary-color {};
+            @define-color text-color {};
+            @define-color accent-color {};
+        ", self.colors.bg, self.colors.secondary_bg, self.colors.secondary_text, self.colors.text, self.colors.accent);
+
+        provider.load_from_data(&*[style.as_bytes(), include_bytes!("resources/style.css")].concat());
     }
 }
