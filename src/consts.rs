@@ -11,5 +11,3 @@ pub const KEY_ESC: u32 = 9;
 pub const KEY_LEFT_SHIFT: u32 = 50;
 pub const KEY_RIGHT_SHIFT: u32 = 62;
 pub const KEY_ENTER: u32 = 36;
-
-pub const ITEMS_PER_PAGE: u32 = 9;

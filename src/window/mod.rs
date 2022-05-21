@@ -3,7 +3,7 @@ use crate::crab_row::CrabRow;
 use gtk::glib::{clone, MainContext, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{Adjustment, CustomFilter, FilterListModel, gio, Inhibit, ScrollType, SignalListItemFactory, SingleSelection};
+use gtk::{CustomFilter, FilterListModel, gio, Inhibit, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
 use gtk::gio::{AppInfo};
 
@@ -41,7 +41,18 @@ impl Window {
             let crab_entry = obj.downcast_ref::<gio::AppInfo>().unwrap();
             let search = window.imp().entry.buffer().text();
 
-            if !search.is_empty() { crab_entry.name().to_lowercase().contains(&search.as_str().to_lowercase()) } else { true }
+            if !search.is_empty() {
+                crab_entry
+                    .name()
+                    .to_lowercase()
+                    .contains(&search.as_str().to_lowercase()) || if crab_entry.description().is_some() {
+                    crab_entry.description().unwrap().to_lowercase().contains(&search.as_str().to_lowercase())
+                } else {
+                    false
+                }
+            } else {
+                true
+            }
         }));
 
         let filter_model = FilterListModel::new(Some(&self.current_items()), Some(&filter));
@@ -92,7 +103,7 @@ impl Window {
                 KEY_ESC => {
                     window.close();
 
-                    Inhibit(false)
+                    Inhibit(true)
                 }
                 KEY_ENTER => {
                     open_app(
