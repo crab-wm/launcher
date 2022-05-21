@@ -1,9 +1,3 @@
-@define-color bg-color #1E2128;
-@define-color bg-secondary-color #32363D;
-@define-color text-secondary-color #989A9E;
-@define-color text-color #FFFFFF;
-@define-color accent-color #62AEEF;
-
 * {
     font-family: "Roboto Mono", monospace;
 }
