@@ -8,7 +8,7 @@
             <object class="GtkBox">
                 <property name="orientation">vertical</property>
                 <property name="margin-top">24</property>
-                <property name="margin-bottom">12</property>
+                <property name="margin-bottom">24</property>
                 <property name="margin-start">0</property>
                 <property name="margin-end">0</property>
                 <property name="spacing">24</property>
@@ -31,9 +31,8 @@
                     </object>
                 </child>
                 <child>
-                    <object class="GtkScrolledWindow">
+                    <object class="GtkScrolledWindow" id="scrolled_window">
                         <property name="hscrollbar-policy">never</property>
-                        <property name="min-content-height">360</property>
                         <property name="vexpand">true</property>
                         <child>
                             <object class="GtkListView" id="crab_items_list" />

@@ -58,7 +58,6 @@ row {
     background: @bg-color;
     margin: 0;
     padding: 0;
-    height: 15px;
 }
 
 row:selected > box {

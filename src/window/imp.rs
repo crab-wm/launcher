@@ -4,13 +4,15 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, glib, ScrolledWindow};
 use gtk::{CompositeTemplate, Entry, ListView};
-use std::cell::{Cell, RefCell};
+use std::cell::{RefCell};
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
 pub struct Window {
     #[template_child]
     pub entry: TemplateChild<Entry>,
+    #[template_child]
+    pub scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]
     pub crab_items_list: TemplateChild<ListView>,
     pub current_items: RefCell<Option<gio::ListStore>>,

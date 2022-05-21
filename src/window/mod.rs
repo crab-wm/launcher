@@ -3,10 +3,9 @@ use crate::crab_row::CrabRow;
 use gtk::glib::{clone, MainContext, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{CustomFilter, FilterListModel, gio, Inhibit, SignalListItemFactory, SingleSelection};
+use gtk::{Adjustment, CustomFilter, FilterListModel, gio, Inhibit, ScrollType, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
 use gtk::gio::{AppInfo};
-use gtk::gdk::AppLaunchContext;
 
 mod imp;
 
@@ -67,50 +66,43 @@ impl Window {
         }));
 
         self.imp().entry.connect_activate(clone!(@weak self as window, @weak selection_model => move |_| {
-            let list_view = &window.imp().crab_items_list;
-
-            let model = list_view.model().unwrap();
-            let app_info = model
-                .item(selection_model.selected())
-                .unwrap()
-                .downcast::<gio::AppInfo>()
-                .unwrap();
-
-            let parent_window = list_view.root().unwrap().downcast::<gtk::Window>().unwrap();
-            let context = gtk::Window::new().display().app_launch_context();
-
-            window.hide();
-            open_app(&app_info, &parent_window, &context);
+            open_app(
+                &selection_model.selected_item().unwrap().downcast::<AppInfo>().unwrap(),
+                &window,
+            );
         }));
 
         let controller = gtk::EventControllerKey::new();
         controller.connect_key_pressed(clone!(@strong self as window => move |_, key, keycode, _| {
             match keycode {
                 KEY_UP_ARROW => {
-                    selection_model.select_item(selection_model.selected() - 1, true);
+                    let new_selection = if selection_model.selected() > 0 { selection_model.selected() - 1 } else { 0 };
+                    selection_model.select_item(new_selection, true);
+                    window.imp().crab_items_list.activate_action("list.scroll-to-item", Some(&new_selection.to_variant())).unwrap();
+
+                    Inhibit(false)
                 }
                 KEY_DOWN_ARROW => {
-                    selection_model.select_item(selection_model.selected() + 1, true);
+                    let new_selection = std::cmp::min(selection_model.n_items() - 1, selection_model.selected() + 1);
+                    selection_model.select_item(new_selection, true);
+                    window.imp().crab_items_list.activate_action("list.scroll-to-item", Some(&new_selection.to_variant())).unwrap();
+
+                    Inhibit(false)
                 }
                 KEY_ESC => {
                     window.close();
+
+                    Inhibit(false)
                 }
                 KEY_ENTER => {
-                    let model = window.imp().crab_items_list.model().unwrap();
-                    let app_info = model
-                        .item(selection_model.selected())
-                        .unwrap()
-                        .downcast::<gio::AppInfo>()
-                        .unwrap();
+                    open_app(
+                        &selection_model.selected_item().unwrap().downcast::<AppInfo>().unwrap(),
+                        &window,
+                    );
 
-                    let parent_window = window.imp().crab_items_list.root().unwrap().downcast::<gtk::Window>().unwrap();
-                    let context = gtk::Window::new().display().app_launch_context();
-
-                    window.hide();
-                    open_app(&app_info, &parent_window, &context);
+                    Inhibit(false)
                 }
                 _ => {
-                    dbg!(keycode);
                     if keycode != KEY_LEFT_SHIFT && keycode != KEY_RIGHT_SHIFT {
                         window.imp().entry.grab_focus();
                     }
@@ -127,10 +119,10 @@ impl Window {
                             window.imp().entry.set_placeholder_text(None);
                         }
                     }
+
+                    Inhibit(false)
                 }
             }
-
-            Inhibit(false)
         }));
 
         self.add_controller(&controller);
@@ -160,11 +152,16 @@ impl Window {
     }
 }
 
-fn open_app(app_info: &AppInfo, parent_window: &gtk::Window, context: &AppLaunchContext) {
+fn open_app(app_info: &AppInfo, window: &Window) {
+    let parent_window = window.imp().crab_items_list.root().unwrap().downcast::<gtk::Window>().unwrap();
+    let context = gtk::Window::new().display().app_launch_context();
+
+    window.hide();
+
     let commandline = app_info.commandline().unwrap();
     let main_context = MainContext::default();
 
-    main_context.spawn_local(clone!(@strong commandline, @strong parent_window, @strong app_info, @strong context => async move {
+    main_context.spawn_local(clone!(@strong commandline, @strong window, @strong app_info, @strong context => async move {
         if let Err(_) = async_process::Command::new(commandline.as_os_str()).output().await {
             if let Err(err) = app_info.launch(&[], Some(&context)) {
                 gtk::MessageDialog::builder()
@@ -172,7 +169,7 @@ fn open_app(app_info: &AppInfo, parent_window: &gtk::Window, context: &AppLaunch
                     .secondary_text(&err.to_string())
                     .message_type(gtk::MessageType::Error)
                     .modal(true)
-                    .transient_for(&parent_window)
+                    .transient_for(&window)
                     .build()
                     .show();
             }
