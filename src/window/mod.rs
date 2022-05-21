@@ -1,5 +1,3 @@
-use std::process::Command;
-use std::thread;
 use super::consts::*;
 use crate::crab_row::CrabRow;
 use gtk::glib::{clone, MainContext, Object};
@@ -173,15 +171,13 @@ impl Window {
 
 fn open_app(app_info: &AppInfo, parent_window: &gtk::Window, context: &AppLaunchContext) {
     let commandline = app_info.commandline().unwrap();
-    dbg!(commandline.as_os_str());
-
     let main_context = MainContext::default();
 
     main_context.spawn_local(clone!(@strong commandline, @strong parent_window, @strong app_info, @strong context => async move {
         if let Err(_) = async_process::Command::new(commandline.as_os_str()).output().await {
             if let Err(err) = app_info.launch(&[], Some(&context)) {
                 gtk::MessageDialog::builder()
-                    .text(&format!("Failed to start {}", app_info.name()))
+                    .text(&format!("Failed to start {}!", app_info.name()))
                     .secondary_text(&err.to_string())
                     .message_type(gtk::MessageType::Error)
                     .modal(true)
@@ -190,6 +186,7 @@ fn open_app(app_info: &AppInfo, parent_window: &gtk::Window, context: &AppLaunch
                     .show();
             }
         }
+
         parent_window.close();
     }));
 }
