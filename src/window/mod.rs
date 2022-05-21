@@ -1,9 +1,11 @@
+use std::process::Command;
+use std::thread;
 use super::consts::*;
 use crate::crab_row::CrabRow;
-use gtk::glib::{clone, Object};
+use gtk::glib::{clone, MainContext, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{CustomFilter, FilterListModel, gdk, gio, Inhibit, SignalListItemFactory, SingleSelection};
+use gtk::{CustomFilter, FilterListModel, gio, Inhibit, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
 use gtk::gio::{AppInfo};
 use gtk::gdk::AppLaunchContext;
@@ -31,8 +33,8 @@ impl Window {
     }
 
     fn setup_window(&self) {
-        let model = gio::ListStore::new(gio::AppInfo::static_type());
-        gio::AppInfo::all().iter().for_each(|app_info| {
+        let model = gio::ListStore::new(AppInfo::static_type());
+        AppInfo::all().iter().for_each(|app_info| {
             model.append(app_info);
         });
 
@@ -48,8 +50,8 @@ impl Window {
         let filter_model = FilterListModel::new(Some(&self.current_items()), Some(&filter));
 
         let sorter = gtk::CustomSorter::new(move |obj1, obj2| {
-            let app_info1 = obj1.downcast_ref::<gio::AppInfo>().unwrap();
-            let app_info2 = obj2.downcast_ref::<gio::AppInfo>().unwrap();
+            let app_info1 = obj1.downcast_ref::<AppInfo>().unwrap();
+            let app_info2 = obj2.downcast_ref::<AppInfo>().unwrap();
 
             app_info1
                 .name()
@@ -89,10 +91,10 @@ impl Window {
                 .unwrap();
 
             let parent_window = list_view.root().unwrap().downcast::<gtk::Window>().unwrap();
+            let context = gtk::Window::new().display().app_launch_context();
 
-            open_app(&app_info, &parent_window);
-
-            window.close();
+            window.hide();
+            open_app(&app_info, &parent_window, &context);
         }));
 
         self.imp().crab_items_list.connect_activate(clone!(@weak self as window => move |list_view, position| {
@@ -104,10 +106,10 @@ impl Window {
                 .unwrap();
 
             let parent_window = list_view.root().unwrap().downcast::<gtk::Window>().unwrap();
+            let context = gtk::Window::new().display().app_launch_context();
 
-            open_app(&app_info, &parent_window);
-
-            window.close();
+            window.hide();
+            open_app(&app_info, &parent_window, &context);
         }));
 
         let controller = gtk::EventControllerKey::new();
@@ -149,37 +151,45 @@ impl Window {
         let factory = SignalListItemFactory::new();
 
         factory.connect_setup(move |_, list_item| {
-            let task_row = CrabRow::new();
-            list_item.set_child(Some(&task_row));
+            let crab_row = CrabRow::new();
+            list_item.set_child(Some(&crab_row));
         });
 
         factory.connect_bind(move |_, list_item| {
             let app_info = list_item
                 .item()
                 .unwrap()
-                .downcast::<gio::AppInfo>()
+                .downcast::<AppInfo>()
                 .unwrap();
 
-            let task_row = list_item.child().unwrap().downcast::<CrabRow>().unwrap();
+            let crab_row = list_item.child().unwrap().downcast::<CrabRow>().unwrap();
 
-            task_row.set_app_info(&app_info);
+            crab_row.set_app_info(&app_info);
         });
 
         self.imp().crab_items_list.set_factory(Some(&factory));
     }
 }
 
-fn open_app(app_info: &AppInfo, parent_window: &gtk::Window) {
-    let context = parent_window.display().app_launch_context();
+fn open_app(app_info: &AppInfo, parent_window: &gtk::Window, context: &AppLaunchContext) {
+    let commandline = app_info.commandline().unwrap();
+    dbg!(commandline.as_os_str());
 
-    if let Err(err) = app_info.launch(&[], Some(&context)) {
-        gtk::MessageDialog::builder()
-            .text(&format!("Failed to start {}", app_info.name()))
-            .secondary_text(&err.to_string())
-            .message_type(gtk::MessageType::Error)
-            .modal(true)
-            .transient_for(parent_window)
-            .build()
-            .show();
-    }
+    let main_context = MainContext::default();
+
+    main_context.spawn_local(clone!(@strong commandline, @strong parent_window, @strong app_info, @strong context => async move {
+        if let Err(_) = async_process::Command::new(commandline.as_os_str()).output().await {
+            if let Err(err) = app_info.launch(&[], Some(&context)) {
+                gtk::MessageDialog::builder()
+                    .text(&format!("Failed to start {}", app_info.name()))
+                    .secondary_text(&err.to_string())
+                    .message_type(gtk::MessageType::Error)
+                    .modal(true)
+                    .transient_for(&parent_window)
+                    .build()
+                    .show();
+            }
+        }
+        parent_window.close();
+    }));
 }
