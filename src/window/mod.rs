@@ -66,39 +66,12 @@ impl Window {
             filter.changed(FilterChange::Different);
         }));
 
-        self.imp().entry.connect_activate(clone!(@weak self as window => move |_| {
-            let mut selected_index = 0;
-
-            for i in 0..selection_model.n_items() {
-                let is_selected = selection_model.selection().contains(i);
-
-                if is_selected {
-                    break;
-                }
-
-                selected_index += 1;
-            }
-
+        self.imp().entry.connect_activate(clone!(@weak self as window, @weak selection_model => move |_| {
             let list_view = &window.imp().crab_items_list;
 
             let model = list_view.model().unwrap();
             let app_info = model
-                .item(selected_index)
-                .unwrap()
-                .downcast::<gio::AppInfo>()
-                .unwrap();
-
-            let parent_window = list_view.root().unwrap().downcast::<gtk::Window>().unwrap();
-            let context = gtk::Window::new().display().app_launch_context();
-
-            window.hide();
-            open_app(&app_info, &parent_window, &context);
-        }));
-
-        self.imp().crab_items_list.connect_activate(clone!(@weak self as window => move |list_view, position| {
-            let model = list_view.model().unwrap();
-            let app_info = model
-                .item(position)
+                .item(selection_model.selected())
                 .unwrap()
                 .downcast::<gio::AppInfo>()
                 .unwrap();
@@ -113,14 +86,32 @@ impl Window {
         let controller = gtk::EventControllerKey::new();
         controller.connect_key_pressed(clone!(@strong self as window => move |_, key, keycode, _| {
             match keycode {
-                116 => {
-                    window.imp().crab_items_list.model().unwrap().select_item(1, false);
+                KEY_UP_ARROW => {
+                    selection_model.select_item(selection_model.selected() - 1, true);
                 }
-                9 => {
+                KEY_DOWN_ARROW => {
+                    selection_model.select_item(selection_model.selected() + 1, true);
+                }
+                KEY_ESC => {
                     window.close();
                 }
+                KEY_ENTER => {
+                    let model = window.imp().crab_items_list.model().unwrap();
+                    let app_info = model
+                        .item(selection_model.selected())
+                        .unwrap()
+                        .downcast::<gio::AppInfo>()
+                        .unwrap();
+
+                    let parent_window = window.imp().crab_items_list.root().unwrap().downcast::<gtk::Window>().unwrap();
+                    let context = gtk::Window::new().display().app_launch_context();
+
+                    window.hide();
+                    open_app(&app_info, &parent_window, &context);
+                }
                 _ => {
-                    if keycode != 50 && keycode != 62 {
+                    dbg!(keycode);
+                    if keycode != KEY_LEFT_SHIFT && keycode != KEY_RIGHT_SHIFT {
                         window.imp().entry.grab_focus();
                     }
 
@@ -175,7 +166,7 @@ fn open_app(app_info: &AppInfo, parent_window: &gtk::Window, context: &AppLaunch
 
     main_context.spawn_local(clone!(@strong commandline, @strong parent_window, @strong app_info, @strong context => async move {
         if let Err(_) = async_process::Command::new(commandline.as_os_str()).output().await {
-            if let Err(err) = app_info.launch(&[], Some(&context)) {
+            if let Err(err) = app_info.launch(&[], None) {
                 gtk::MessageDialog::builder()
                     .text(&format!("Failed to start {}!", app_info.name()))
                     .secondary_text(&err.to_string())

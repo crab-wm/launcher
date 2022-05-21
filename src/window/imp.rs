@@ -2,9 +2,9 @@ use crate::consts::*;
 use glib::subclass::InitializingObject;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, glib};
+use gtk::{gio, glib, ScrolledWindow};
 use gtk::{CompositeTemplate, Entry, ListView};
-use std::cell::{RefCell};
+use std::cell::{Cell, RefCell};
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
@@ -40,6 +40,8 @@ impl ObjectImpl for Window {
 
         obj.set_decorated(false);
         obj.set_title(Some(APP_TITLE));
+
+        obj.imp().crab_items_list.set_can_focus(false);
     }
 }
 
