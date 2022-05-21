@@ -83,7 +83,7 @@ impl Window {
                     Inhibit(false)
                 }
                 KEY_DOWN_ARROW => {
-                    let new_selection = std::cmp::min(selection_model.n_items() - 1, selection_model.selected() + 1);
+                    let new_selection = if selection_model.n_items() > 0 { std::cmp::min(selection_model.n_items() - 1, selection_model.selected() + 1) } else { 0 };
                     selection_model.select_item(new_selection, true);
                     window.imp().crab_items_list.activate_action("list.scroll-to-item", Some(&new_selection.to_variant())).unwrap();
 
