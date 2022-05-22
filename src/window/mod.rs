@@ -2,13 +2,14 @@ use super::consts::*;
 use super::utils::*;
 use crate::crab_row::CrabRow;
 use crate::crab_tabs::imp::CrabTab;
+use crate::music_object::MusicObject;
 use gtk::gio::AppInfo;
 use gtk::glib::{clone, MainContext, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, CustomFilter, Inhibit, SignalListItemFactory};
+use gtk::{gio, CustomFilter, Inhibit, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
-use crate::Config;
+use std::process::Command;
 
 mod imp;
 
@@ -28,6 +29,10 @@ impl Window {
         self.imp().current_filter.borrow().clone()
     }
 
+    pub fn current_selection_model(&self) -> SingleSelection {
+        self.imp().current_selection_model.borrow().clone()
+    }
+
     pub fn current_items(&self) -> gio::ListStore {
         self.imp()
             .current_items
@@ -44,6 +49,7 @@ impl Window {
 
         self.imp().crab_items_list.set_model(Some(&selection_model));
         self.imp().current_filter.replace(filter);
+        self.imp().current_selection_model.replace(selection_model);
 
         self.imp().tabs.connect_notify_local(Some("current-tab"), clone!(@weak self as window => move |crab_tabs, _| {
             let main_context = MainContext::default();
@@ -57,6 +63,7 @@ impl Window {
 
                 window.imp().crab_items_list.set_model(Some(&selection_model));
                 window.imp().current_filter.replace(filter);
+                window.imp().current_selection_model.replace(selection_model);
             }));
         }));
 
@@ -67,9 +74,9 @@ impl Window {
             }));
 
         self.imp().entry.connect_activate(
-            clone!(@weak self as window, @weak selection_model => move |_| {
+            clone!(@weak self as window => move |_| {
                 open_app(
-                    &selection_model.selected_item().unwrap().downcast::<AppInfo>().unwrap(),
+                    &window.current_selection_model().selected_item().unwrap().downcast::<AppInfo>().unwrap(),
                     &window,
                 );
             }),
@@ -77,6 +84,8 @@ impl Window {
 
         let controller = gtk::EventControllerKey::new();
         controller.connect_key_pressed(clone!(@strong self as window => move |_, key, keycode, _| {
+            let selection_model = window.current_selection_model();
+
             match keycode {
                 KEY_UP_ARROW => {
                     let new_selection = if selection_model.selected() > 0 { selection_model.selected() - 1 } else { 0 };
@@ -98,10 +107,17 @@ impl Window {
                     Inhibit(true)
                 }
                 KEY_ENTER => {
-                    open_app(
-                        &selection_model.selected_item().unwrap().downcast::<AppInfo>().unwrap(),
-                        &window,
-                    );
+                    let row_data = &selection_model.selected_item().unwrap().downcast::<AppInfo>();
+
+                    if let Ok(row_data) = row_data {
+                        open_app(&row_data, &window);
+                    }
+                    else {
+                        let row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();
+
+                        //let url = format!("{}", );
+                        //Command::new(format!("xdg-open {}", url)).spawn().unwrap();
+                    }
 
                     Inhibit(false)
                 }
@@ -144,13 +160,18 @@ impl Window {
             list_item.set_child(Some(&crab_row));
         });
 
-        factory.connect_bind(move |_, list_item| {
-            let app_info = list_item.item().unwrap().downcast::<AppInfo>().unwrap();
-
+        factory.connect_bind(clone!(@weak self as window => move |_, list_item| {
             let crab_row = list_item.child().unwrap().downcast::<CrabRow>().unwrap();
 
-            crab_row.set_app_info(&app_info);
-        });
+            let row_data = list_item.item().unwrap().downcast::<AppInfo>();
+            if let Err(_) = row_data {
+                let row_data = list_item.item().unwrap().downcast::<MusicObject>().unwrap();
+                crab_row.set_row_data(&row_data);
+            }
+            else {
+                crab_row.set_row_data(&row_data.unwrap());
+            }
+        }));
 
         self.imp().crab_items_list.set_factory(Some(&factory));
     }

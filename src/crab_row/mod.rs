@@ -1,4 +1,4 @@
-mod imp;
+pub mod imp;
 
 use crate::crab_row::imp::CrabRowExt;
 use gtk::glib::Object;
@@ -21,7 +21,7 @@ impl CrabRow {
         Object::new(&[]).expect("Failed to create CrabRow")
     }
 
-    pub fn set_app_info(&self, app_info: &impl CrabRowExt) {
+    pub fn set_row_data(&self, app_info: &impl CrabRowExt) {
         let imp = self.imp();
         imp.name.set_text(&app_info.get_name());
         if let Some(icon) = app_info.get_icon() {

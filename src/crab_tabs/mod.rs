@@ -1,10 +1,10 @@
 pub(crate) mod imp;
 
 use crate::crab_tabs::imp::CrabTab;
+use gtk::glib;
 use gtk::glib::Object;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::glib;
 
 glib::wrapper! {
     pub struct CrabTabs(ObjectSubclass<imp::CrabTabs>)

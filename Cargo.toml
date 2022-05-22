@@ -12,6 +12,10 @@ async-process = "1.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 dirs = "4.0"
+dotenv = "0.15"
+dotenv_codegen = "0.15"
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.18", features = ["full"] }
 
 [build-dependencies]
 gtk = { version = "0.4", package = "gtk4" }

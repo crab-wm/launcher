@@ -1,7 +1,11 @@
+#[macro_use]
+extern crate dotenv_codegen;
+
 mod config;
 mod consts;
 mod crab_row;
 mod crab_tabs;
+mod music_object;
 mod utils;
 mod window;
 
@@ -18,7 +22,8 @@ use crate::utils::display_err;
 use consts::*;
 use window::Window;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut args = std::env::args();
     let arg = args.nth(1);
 

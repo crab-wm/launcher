@@ -3,7 +3,7 @@ use crate::crab_tabs::CrabTabs;
 use glib::subclass::InitializingObject;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, glib, CustomFilter, ScrolledWindow};
+use gtk::{gio, glib, CustomFilter, ScrolledWindow, SingleSelection};
 use gtk::{CompositeTemplate, Entry, ListView};
 use std::cell::RefCell;
 
@@ -20,6 +20,7 @@ pub struct Window {
     pub tabs: TemplateChild<CrabTabs>,
     pub current_items: RefCell<Option<gio::ListStore>>,
     pub current_filter: RefCell<CustomFilter>,
+    pub current_selection_model: RefCell<SingleSelection>,
 }
 
 #[glib::object_subclass]

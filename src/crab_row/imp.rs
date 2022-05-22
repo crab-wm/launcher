@@ -5,7 +5,10 @@ use gtk::{glib, CompositeTemplate, Image, Label};
 
 pub trait CrabRowExt {
     fn get_name(&self) -> String;
-    fn get_icon(&self) -> Option<Icon>;
+
+    fn get_icon(&self) -> Option<Icon> {
+        None
+    }
 }
 
 impl CrabRowExt for AppInfo {

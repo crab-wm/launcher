@@ -4,19 +4,38 @@ use gtk::CssProvider;
 use serde::Deserialize;
 use std::fs;
 
+#[derive(Deserialize, Debug)]
+pub enum ConfigMusicService {
+    #[serde(rename = "youtube")]
+    Youtube,
+}
+
+impl Default for ConfigMusicService {
+    fn default() -> Self {
+        Self::Youtube
+    }
+}
+
 #[derive(Deserialize, Debug, Default)]
-struct ConfigColors {
-    bg: String,
-    secondary_bg: String,
-    text: String,
-    secondary_text: String,
-    accent: String,
+pub struct ConfigMusic {
+    pub account_id: String,
+    pub service: ConfigMusicService,
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub struct ConfigColors {
+    pub bg: String,
+    pub secondary_bg: String,
+    pub text: String,
+    pub secondary_text: String,
+    pub accent: String,
 }
 
 #[derive(Deserialize, Debug, Default)]
 pub struct Config {
-    colors: ConfigColors,
+    pub colors: ConfigColors,
     pub opacity: Option<f32>,
+    pub music: Option<ConfigMusic>,
 }
 
 impl Config {

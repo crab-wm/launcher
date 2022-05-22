@@ -13,6 +13,10 @@ colors:
   accent: \"#62AEEF\"
 
 opacity: 1.0
+
+music:
+  account_id: \"\"
+  service: \"youtube\"
 ";
 
 pub const ERROR_RESOURCES: &str = "Failed to register resources.";
@@ -31,3 +35,6 @@ pub const KEY_TAB: u32 = 23;
 
 pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
 pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";
+
+pub const API_YOUTUBE_GET_PLAYLISTS_URL: &str =
+    "https://youtube.googleapis.com/youtube/v3/playlists?part=id%2Csnippet&channelId=";

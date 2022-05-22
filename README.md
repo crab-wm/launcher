@@ -34,4 +34,8 @@ colors:
   accent: "#62AEEF"
 
 opacity: 1.0
+
+music:
+  account_id: ""
+  service: "youtube"
 ```
