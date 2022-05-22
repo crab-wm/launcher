@@ -1,5 +1,4 @@
 use std::{fs};
-use std::error::Error;
 use gtk::CssProvider;
 use crate::consts::*;
 use crate::utils::*;

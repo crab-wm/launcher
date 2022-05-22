@@ -6,6 +6,10 @@ Crab Launcher is a simple and modern Crab app launcher whitten in Rust programmi
 ## How to use it?
 Download binary from [here](https://github.com/crab-wm/launcher/releases) and bind it in your favourite window manager!
 
+After downloading the binary generate default config file and copy it to `~/.config/crab/launcher.yaml`.
+
+To generate the config file, run `crab-launcher --generate-config`.
+
 ## Screenshots
 Here are some screenshots of this app.
 

@@ -4,6 +4,9 @@ mod window;
 mod config;
 mod utils;
 
+use std::io::Write;
+use std::fs::File;
+use std::process::exit;
 use gtk::gdk::Display;
 use gtk::prelude::*;
 use gtk::Application;
@@ -12,8 +15,26 @@ use gtk::{gio, CssProvider, StyleContext};
 use consts::*;
 use window::Window;
 use crate::config::Config;
+use crate::utils::display_err;
 
 fn main() {
+    let mut args = std::env::args();
+    let arg = args.nth(1);
+
+    if let Some(arg) = arg {
+        match arg.as_str() {
+            "--generate-config" => {
+                let mut file = File::create(format!("{}{}", dirs::config_dir().unwrap().as_os_str().to_str().unwrap(), CONFIG_DEFAULT_PATH)).unwrap();
+
+                file.write_all(CONFIG_DEFAULT_STRING.as_bytes()).unwrap();
+
+                println!("{}", CONFIG_GENERATED);
+                exit(0);
+            }
+            a => display_err(format!("Uknown parameter: {}", a).as_str())
+        }
+    }
+
     gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
 
     let app = Application::builder().application_id(APP_ID).build();

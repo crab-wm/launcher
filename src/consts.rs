@@ -3,6 +3,17 @@ pub const APP_TITLE: &str = "crab-launcher";
 
 pub const CONFIG_USER_PATH: &str = "/crab/launcher.yaml";
 pub const CONFIG_DEFAULT_PATH: &str = "/crab/launcher_def.yaml";
+pub const CONFIG_GENERATED: &str = "Config generated successfully! You can find it in `~/.config/crab/launcher_def.yaml`. Copy the file to `~/.config/crab/launcher.yaml` and edit it as you want!";
+pub const CONFIG_DEFAULT_STRING: &str = "\
+colors:
+  bg: \"#1E2128\"
+  secondary_bg: \"#32363D\"
+  text: \"#FFFFFF\"
+  secondary_text: \"#989A9E\"
+  accent: \"#62AEEF\"
+
+opacity: 1.0
+";
 
 pub const ERROR_RESOURCES: &str = "Failed to register resources.";
 pub const ERROR_DISPLAY: &str = "Could not connect to a display.";
