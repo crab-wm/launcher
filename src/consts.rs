@@ -18,7 +18,7 @@ opacity: 1.0
 pub const ERROR_RESOURCES: &str = "Failed to register resources.";
 pub const ERROR_DISPLAY: &str = "Could not connect to a display.";
 pub const ERROR_ITEMS: &str = "Could not get current items.";
-pub const ERROR_MISSING_CONFIG: &str = "Could not find configuration file for the application. Make sure you have a `~/.config/crab/launcher_def.yaml` file.";
+pub const ERROR_MISSING_CONFIG: &str = "Could not find configuration file for the application. Make sure you have a `~/.config/crab/launcher_def.yaml` file. If you don't have it, run `crab-launcher --generate-config`";
 pub const ERROR_BAD_CONFIG: &str = "Could not read configuration file. Make sure you have a `~/.config/crab/launcher_def.yaml` file and it's properly formatted.";
 
 pub const KEY_UP_ARROW: u32 = 111;
