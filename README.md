@@ -9,7 +9,9 @@ Download binary from [here](https://github.com/crab-wm/launcher/releases) and bi
 ## Screenshots
 Here are some screenshots of this app.
 
-`Wait for the next commit. I'm gonna isert them.`
+|                                                    Default config                                                    |                                                  Light mode config                                                   |                                                     Color config                                                     |
+|:--------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------:|
+| ![Screenshot 1](https://raw.githubusercontent.com/crab-wm/launcher/main/.github/assets/screenshots/screenshot_3.png) | ![Screenshot 2](https://raw.githubusercontent.com/crab-wm/launcher/main/.github/assets/screenshots/screenshot_2.png) | ![Screenshot 3](https://raw.githubusercontent.com/crab-wm/launcher/main/.github/assets/screenshots/screenshot_1.png) |
 
 ## Troubleshooting
 ### My launcher will not launch! It shows me an error.
