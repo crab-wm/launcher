@@ -1,11 +1,11 @@
 use crate::consts::*;
+use crate::crab_tabs::CrabTabs;
 use glib::subclass::InitializingObject;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{CustomFilter, gio, glib, ScrolledWindow};
+use gtk::{gio, glib, CustomFilter, ScrolledWindow};
 use gtk::{CompositeTemplate, Entry, ListView};
-use std::cell::{RefCell};
-use crate::crab_tabs::CrabTabs;
+use std::cell::RefCell;
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
@@ -19,7 +19,7 @@ pub struct Window {
     #[template_child]
     pub tabs: TemplateChild<CrabTabs>,
     pub current_items: RefCell<Option<gio::ListStore>>,
-    pub current_filter: RefCell<CustomFilter>
+    pub current_filter: RefCell<CustomFilter>,
 }
 
 #[glib::object_subclass]

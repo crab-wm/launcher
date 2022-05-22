@@ -28,3 +28,6 @@ pub const KEY_LEFT_SHIFT: u32 = 50;
 pub const KEY_RIGHT_SHIFT: u32 = 62;
 pub const KEY_ENTER: u32 = 36;
 pub const KEY_TAB: u32 = 23;
+
+pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
+pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";

@@ -1,10 +1,9 @@
 mod imp;
 
+use crate::crab_row::imp::CrabRowExt;
 use gtk::glib::Object;
-use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, glib};
-use crate::crab_row::imp::CrabRowExt;
 
 glib::wrapper! {
     pub struct CrabRow(ObjectSubclass<imp::CrabRow>)
@@ -28,7 +27,8 @@ impl CrabRow {
         if let Some(icon) = app_info.get_icon() {
             imp.image.set_from_gicon(&icon);
         } else {
-            imp.image.set_from_gicon(&gio::Icon::for_string("media-playback-start").unwrap());
+            imp.image
+                .set_from_gicon(&gio::Icon::for_string("media-playback-start").unwrap());
         }
     }
 }

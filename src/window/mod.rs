@@ -1,16 +1,16 @@
-use std::borrow::Borrow;
 use super::consts::*;
 use super::utils::*;
 use crate::crab_row::CrabRow;
-use gtk::glib::{clone, Object};
+use crate::crab_tabs::imp::CrabTab;
+use gtk::gio::AppInfo;
+use gtk::glib::{clone, MainContext, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{CustomFilter, gio, Inhibit, SignalListItemFactory, SingleSelection};
+use gtk::{gio, CustomFilter, Inhibit, SignalListItemFactory};
 use gtk::{glib, Application, FilterChange};
-use gtk::gio::{AppInfo};
-use crate::crab_tabs::imp::CrabTab;
+use crate::Config;
 
-pub(crate) mod imp;
+mod imp;
 
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)
@@ -25,10 +25,7 @@ impl Window {
     }
 
     pub fn current_filter(&self) -> CustomFilter {
-        self.imp()
-            .current_filter
-            .borrow()
-            .clone()
+        self.imp().current_filter.borrow().clone()
     }
 
     pub fn current_items(&self) -> gio::ListStore {
@@ -43,31 +40,40 @@ impl Window {
         self.imp().crab_items_list.set_can_focus(false);
         self.imp().tabs.set_can_focus(false);
 
-        let (filter, selection_model) = setup_list_model(&self, self.imp().tabs.imp().current_tab.take().borrow());
+        let (filter, selection_model) = setup_programs_model(&self);
+
         self.imp().crab_items_list.set_model(Some(&selection_model));
         self.imp().current_filter.replace(filter);
 
         self.imp().tabs.connect_notify_local(Some("current-tab"), clone!(@weak self as window => move |crab_tabs, _| {
-            let (filter, selection_model) = setup_list_model(&window, &match crab_tabs.property::<i32>("current-tab") {
-                0 => CrabTab::Programs,
-                1 => CrabTab::Music,
-                _ => CrabTab::Programs
-            });
+            let main_context = MainContext::default();
 
-            window.imp().crab_items_list.set_model(Some(&selection_model));
-            window.imp().current_filter.replace(filter);
+            main_context.spawn_local(clone!(@weak window, @weak crab_tabs => async move {
+                let (filter, selection_model) = setup_list_model_async(&window, &match crab_tabs.property::<i32>("current-tab") {
+                    0 => CrabTab::Programs,
+                    1 => CrabTab::Music,
+                    _ => CrabTab::Programs
+                }).await;
+
+                window.imp().crab_items_list.set_model(Some(&selection_model));
+                window.imp().current_filter.replace(filter);
+            }));
         }));
 
-        self.imp().entry.connect_changed(clone!(@strong self as window => move |_| {
-            window.current_filter().changed(FilterChange::Different);
-        }));
+        self.imp()
+            .entry
+            .connect_changed(clone!(@strong self as window => move |_| {
+                window.current_filter().changed(FilterChange::Different);
+            }));
 
-        self.imp().entry.connect_activate(clone!(@weak self as window, @weak selection_model => move |_| {
-            open_app(
-                &selection_model.selected_item().unwrap().downcast::<AppInfo>().unwrap(),
-                &window,
-            );
-        }));
+        self.imp().entry.connect_activate(
+            clone!(@weak self as window, @weak selection_model => move |_| {
+                open_app(
+                    &selection_model.selected_item().unwrap().downcast::<AppInfo>().unwrap(),
+                    &window,
+                );
+            }),
+        );
 
         let controller = gtk::EventControllerKey::new();
         controller.connect_key_pressed(clone!(@strong self as window => move |_, key, keycode, _| {
@@ -139,11 +145,7 @@ impl Window {
         });
 
         factory.connect_bind(move |_, list_item| {
-            let app_info = list_item
-                .item()
-                .unwrap()
-                .downcast::<AppInfo>()
-                .unwrap();
+            let app_info = list_item.item().unwrap().downcast::<AppInfo>().unwrap();
 
             let crab_row = list_item.child().unwrap().downcast::<CrabRow>().unwrap();
 

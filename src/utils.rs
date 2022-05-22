@@ -1,11 +1,11 @@
-use std::process::exit;
-use gtk::{CustomFilter, FilterListModel, gio, SingleSelection};
+use crate::crab_tabs::imp::CrabTab;
+use crate::{Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS};
 use gtk::gio::AppInfo;
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use crate::Window;
-use crate::crab_tabs::imp::CrabTab;
+use gtk::{gio, CustomFilter, FilterListModel, SingleSelection};
+use std::process::exit;
 
 pub fn open_app(app_info: &AppInfo, window: &Window) {
     let context = gtk::Window::new().display().app_launch_context();
@@ -40,6 +40,11 @@ pub fn display_err(message: &str) {
 }
 
 pub fn get_programs_model(window: &Window) -> (CustomFilter, SingleSelection) {
+    window
+        .imp()
+        .entry
+        .set_placeholder_text(Some(PLACEHOLDER_PROGRAMS));
+
     let model = gio::ListStore::new(AppInfo::static_type());
     AppInfo::all().iter().for_each(|app_info| {
         model.append(app_info);
@@ -48,22 +53,22 @@ pub fn get_programs_model(window: &Window) -> (CustomFilter, SingleSelection) {
     window.imp().current_items.replace(Some(model));
 
     let filter = CustomFilter::new(clone!(@strong window => move |obj| {
-            let crab_entry = obj.downcast_ref::<gio::AppInfo>().unwrap();
-            let search = window.imp().entry.buffer().text();
+        let crab_entry = obj.downcast_ref::<gio::AppInfo>().unwrap();
+        let search = window.imp().entry.buffer().text();
 
-            if !search.is_empty() {
-                crab_entry
-                    .name()
-                    .to_lowercase()
-                    .contains(&search.as_str().to_lowercase()) || if crab_entry.description().is_some() {
-                    crab_entry.description().unwrap().to_lowercase().contains(&search.as_str().to_lowercase())
-                } else {
-                    false
-                }
+        if !search.is_empty() {
+            crab_entry
+                .name()
+                .to_lowercase()
+                .contains(&search.as_str().to_lowercase()) || if crab_entry.description().is_some() {
+                crab_entry.description().unwrap().to_lowercase().contains(&search.as_str().to_lowercase())
             } else {
-                true
+                false
             }
-        }));
+        } else {
+            true
+        }
+    }));
 
     let filter_model = FilterListModel::new(Some(&window.current_items()), Some(&filter));
 
@@ -77,14 +82,19 @@ pub fn get_programs_model(window: &Window) -> (CustomFilter, SingleSelection) {
             .cmp(&app_info2.name().to_lowercase())
             .into()
     });
-    let sorted_model = gtk::SortListModel::new(Some(&filter_model), Some(&sorter));
 
+    let sorted_model = gtk::SortListModel::new(Some(&filter_model), Some(&sorter));
     let selection_model = SingleSelection::new(Some(&sorted_model));
 
     (filter, selection_model)
 }
 
-pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
+pub async fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
+    window
+        .imp()
+        .entry
+        .set_placeholder_text(Some(PLACEHOLDER_MUSIC));
+
     let model = gio::ListStore::new(AppInfo::static_type());
     AppInfo::all().iter().for_each(|app_info| {
         //model.append(app_info);
@@ -93,22 +103,22 @@ pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
     window.imp().current_items.replace(Some(model));
 
     let filter = CustomFilter::new(clone!(@strong window => move |obj| {
-            let crab_entry = obj.downcast_ref::<gio::AppInfo>().unwrap();
-            let search = window.imp().entry.buffer().text();
+        let crab_entry = obj.downcast_ref::<gio::AppInfo>().unwrap();
+        let search = window.imp().entry.buffer().text();
 
-            if !search.is_empty() {
-                crab_entry
-                    .name()
-                    .to_lowercase()
-                    .contains(&search.as_str().to_lowercase()) || if crab_entry.description().is_some() {
-                    crab_entry.description().unwrap().to_lowercase().contains(&search.as_str().to_lowercase())
-                } else {
-                    false
-                }
+        if !search.is_empty() {
+            crab_entry
+                .name()
+                .to_lowercase()
+                .contains(&search.as_str().to_lowercase()) || if crab_entry.description().is_some() {
+                crab_entry.description().unwrap().to_lowercase().contains(&search.as_str().to_lowercase())
             } else {
-                true
+                false
             }
-        }));
+        } else {
+            true
+        }
+    }));
 
     let filter_model = FilterListModel::new(Some(&window.current_items()), Some(&filter));
 
@@ -122,16 +132,23 @@ pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
             .cmp(&app_info2.name().to_lowercase())
             .into()
     });
-    let sorted_model = gtk::SortListModel::new(Some(&filter_model), Some(&sorter));
 
+    let sorted_model = gtk::SortListModel::new(Some(&filter_model), Some(&sorter));
     let selection_model = SingleSelection::new(Some(&sorted_model));
 
     (filter, selection_model)
 }
 
-pub fn setup_list_model(window: &Window, tab: &CrabTab) -> (CustomFilter, SingleSelection) {
+pub async fn setup_list_model_async(
+    window: &Window,
+    tab: &CrabTab,
+) -> (CustomFilter, SingleSelection) {
     match tab {
         CrabTab::Programs => get_programs_model(window),
-        CrabTab::Music => get_music_model(window),
+        CrabTab::Music => get_music_model(window).await,
     }
+}
+
+pub fn setup_programs_model(window: &Window) -> (CustomFilter, SingleSelection) {
+    get_programs_model(window)
 }

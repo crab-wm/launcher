@@ -1,22 +1,22 @@
+mod config;
 mod consts;
 mod crab_row;
-mod window;
-mod config;
-mod utils;
 mod crab_tabs;
+mod utils;
+mod window;
 
-use std::io::Write;
-use std::fs::File;
-use std::process::exit;
 use gtk::gdk::Display;
 use gtk::prelude::*;
 use gtk::Application;
 use gtk::{gio, CssProvider, StyleContext};
+use std::fs::File;
+use std::io::Write;
+use std::process::exit;
 
-use consts::*;
-use window::Window;
 use crate::config::Config;
 use crate::utils::display_err;
+use consts::*;
+use window::Window;
 
 fn main() {
     let mut args = std::env::args();
@@ -25,20 +25,27 @@ fn main() {
     if let Some(arg) = arg {
         match arg.as_str() {
             "--generate-config" => {
-                let mut file = File::create(format!("{}{}", dirs::config_dir().unwrap().as_os_str().to_str().unwrap(), CONFIG_DEFAULT_PATH)).unwrap();
+                let mut file = File::create(format!(
+                    "{}{}",
+                    dirs::config_dir().unwrap().as_os_str().to_str().unwrap(),
+                    CONFIG_DEFAULT_PATH
+                ))
+                .unwrap();
 
                 file.write_all(CONFIG_DEFAULT_STRING.as_bytes()).unwrap();
 
                 println!("{}", CONFIG_GENERATED);
                 exit(0);
             }
-            a => display_err(format!("Uknown parameter: {}", a).as_str())
+            a => display_err(format!("Uknown parameter: {}", a).as_str()),
         }
     }
 
     gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
 
     let app = Application::builder().application_id(APP_ID).build();
+
+    let config = Config::new();
 
     app.connect_startup(|_| load_css());
     app.connect_activate(build_ui);

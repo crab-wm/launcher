@@ -1,10 +1,10 @@
 pub(crate) mod imp;
 
+use crate::crab_tabs::imp::CrabTab;
 use gtk::glib::Object;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, glib};
-use crate::crab_tabs::imp::CrabTab;
+use gtk::glib;
 
 glib::wrapper! {
     pub struct CrabTabs(ObjectSubclass<imp::CrabTabs>)
@@ -19,7 +19,7 @@ impl Default for CrabTabs {
 
 impl CrabTabs {
     pub fn new() -> Self {
-        Object::new(&[]).expect("Failed to create CrabTabs")
+        Object::new(&[("current-tab", &0.to_value())]).expect("Failed to create CrabTabs")
     }
 
     fn setup_tabs(&self) {

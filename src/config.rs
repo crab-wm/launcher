@@ -1,10 +1,10 @@
-use std::{fs};
-use gtk::CssProvider;
 use crate::consts::*;
 use crate::utils::*;
-use serde::{Deserialize};
+use gtk::CssProvider;
+use serde::Deserialize;
+use std::fs;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 struct ConfigColors {
     bg: String,
     secondary_bg: String,
@@ -13,10 +13,10 @@ struct ConfigColors {
     accent: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct Config {
     colors: ConfigColors,
-    opacity: Option<f32>,
+    pub opacity: Option<f32>,
 }
 
 impl Config {
@@ -67,16 +67,30 @@ impl Config {
     pub fn apply(&self, provider: &CssProvider) {
         let mut opacity = self.opacity.unwrap_or(1.);
 
-        opacity = if opacity < 0. || opacity > 1. { 1. } else { opacity };
+        opacity = if opacity < 0. || opacity > 1. {
+            1.
+        } else {
+            opacity
+        };
 
-        let style = format!("
+        let style = format!(
+            "
             @define-color bg-color alpha({}, {});
             @define-color bg-secondary-color alpha({}, {});
             @define-color text-secondary-color {};
             @define-color text-color {};
             @define-color accent-color {};
-        ", self.colors.bg, opacity, self.colors.secondary_bg, opacity, self.colors.secondary_text, self.colors.text, self.colors.accent);
+        ",
+            self.colors.bg,
+            opacity,
+            self.colors.secondary_bg,
+            opacity,
+            self.colors.secondary_text,
+            self.colors.text,
+            self.colors.accent
+        );
 
-        provider.load_from_data(&*[style.as_bytes(), include_bytes!("resources/style.css")].concat());
+        provider
+            .load_from_data(&*[style.as_bytes(), include_bytes!("resources/style.css")].concat());
     }
 }

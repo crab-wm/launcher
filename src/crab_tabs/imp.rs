@@ -1,16 +1,15 @@
-use std::borrow::Borrow;
-use std::cell::RefCell;
+use crate::gio::glib::{ParamSpec, Value};
+use gtk::glib::{ParamFlags, ParamSpecInt};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate, Label};
-use gtk::glib::{ParamFlags, ParamSpecInt};
 use once_cell::sync::Lazy;
-use crate::gio::glib::{ParamSpec, Value};
-use crate::gio::glib::subclass::Signal;
+use std::borrow::Borrow;
+use std::cell::RefCell;
 
 pub enum CrabTab {
     Programs,
-    Music
+    Music,
 }
 
 impl CrabTab {
@@ -23,7 +22,9 @@ impl CrabTab {
 }
 
 impl Default for CrabTab {
-    fn default() -> Self { Self::Programs }
+    fn default() -> Self {
+        Self::Programs
+    }
 }
 
 #[derive(Default, CompositeTemplate)]
@@ -33,7 +34,7 @@ pub struct CrabTabs {
     pub tab_programs: TemplateChild<Label>,
     #[template_child]
     pub tab_music: TemplateChild<Label>,
-    pub current_tab: RefCell<CrabTab>
+    pub current_tab: RefCell<CrabTab>,
 }
 
 #[glib::object_subclass]
@@ -75,10 +76,10 @@ impl ObjectImpl for CrabTabs {
                 self.current_tab.replace(match new_tab {
                     0 => CrabTab::Programs,
                     1 => CrabTab::Music,
-                    _ => CrabTab::Programs
+                    _ => CrabTab::Programs,
                 });
-            },
-            _ => unimplemented!()
+            }
+            _ => unimplemented!(),
         }
     }
 
@@ -86,9 +87,9 @@ impl ObjectImpl for CrabTabs {
         match pspec.name() {
             "current-tab" => match self.current_tab.take().borrow() {
                 CrabTab::Programs => 0.to_value(),
-                CrabTab::Music => 1.to_value()
+                CrabTab::Music => 1.to_value(),
             },
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 

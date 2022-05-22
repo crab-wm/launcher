@@ -1,7 +1,7 @@
+use gtk::gio::{AppInfo, Icon};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate, Image, Label};
-use gtk::gio::{AppInfo, Icon};
 
 pub trait CrabRowExt {
     fn get_name(&self) -> String;
