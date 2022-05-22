@@ -1,29 +1,32 @@
-use std::fs;
+use std::{fs};
+use std::error::Error;
 use gtk::CssProvider;
 use crate::consts::*;
+use crate::utils::*;
 use serde::{Deserialize};
 
 #[derive(Deserialize, Debug)]
-pub struct ConfigColors {
-    pub bg: String,
-    pub secondary_bg: String,
-    pub text: String,
-    pub secondary_text: String,
-    pub accent: String,
+struct ConfigColors {
+    bg: String,
+    secondary_bg: String,
+    text: String,
+    secondary_text: String,
+    accent: String,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    pub colors: ConfigColors,
+    colors: ConfigColors,
+    opacity: Option<f32>,
 }
 
 impl Config {
     pub fn new() -> Self {
-        let home_dir = dirs::home_dir().unwrap();
-        let home_dir = home_dir.as_os_str().to_str().unwrap();
+        let config_dir = dirs::config_dir().unwrap();
+        let config_dir = config_dir.as_os_str().to_str().unwrap();
 
-        let user_config_path = format!("{}{}", home_dir, CONFIG_USER_PATH);
-        let default_config_path = format!("{}{}", home_dir, CONFIG_DEFAULT_PATH);
+        let user_config_path = format!("{}{}", config_dir, CONFIG_USER_PATH);
+        let default_config_path = format!("{}{}", config_dir, CONFIG_DEFAULT_PATH);
 
         let mut using_default_config = false;
 
@@ -31,32 +34,49 @@ impl Config {
 
         if let Err(_) = config_file {
             config_file = fs::File::open(&default_config_path);
+
+            if let Err(_) = config_file {
+                display_err(ERROR_MISSING_CONFIG);
+            }
+
             using_default_config = true;
         }
 
-        let config_file = config_file.expect(ERROR_MISSING_CONFIG);
+        let config = serde_yaml::from_reader::<_, Config>(config_file.unwrap());
 
-        let serde_parser = serde_yaml::from_reader::<_, Config>(config_file);
-
-        if let Err(_) = &serde_parser {
+        if let Err(_) = &config {
             if !using_default_config {
-                return serde_yaml::from_reader::<_, Config>(fs::File::open(&default_config_path).expect(ERROR_MISSING_CONFIG)).expect(ERROR_BAD_CONFIG);
+                let config_file = fs::File::open(&default_config_path);
+
+                if let Err(_) = config_file {
+                    display_err(ERROR_MISSING_CONFIG);
+                }
+
+                let config = serde_yaml::from_reader::<_, Config>(config_file.unwrap());
+
+                if let Err(_) = config {
+                    display_err(ERROR_BAD_CONFIG);
+                }
             }
 
-            panic!("{}", ERROR_BAD_CONFIG);
+            display_err(ERROR_BAD_CONFIG);
         }
 
-        serde_parser.expect(ERROR_BAD_CONFIG)
+        config.unwrap()
     }
 
     pub fn apply(&self, provider: &CssProvider) {
+        let mut opacity = self.opacity.unwrap_or(1.);
+
+        opacity = if opacity < 0. || opacity > 1. { 1. } else { opacity };
+
         let style = format!("
-            @define-color bg-color {};
-            @define-color bg-secondary-color {};
+            @define-color bg-color alpha({}, {});
+            @define-color bg-secondary-color alpha({}, {});
             @define-color text-secondary-color {};
             @define-color text-color {};
             @define-color accent-color {};
-        ", self.colors.bg, self.colors.secondary_bg, self.colors.secondary_text, self.colors.text, self.colors.accent);
+        ", self.colors.bg, opacity, self.colors.secondary_bg, opacity, self.colors.secondary_text, self.colors.text, self.colors.accent);
 
         provider.load_from_data(&*[style.as_bytes(), include_bytes!("resources/style.css")].concat());
     }

@@ -2,6 +2,7 @@ mod consts;
 mod crab_row;
 mod window;
 mod config;
+mod utils;
 
 use gtk::gdk::Display;
 use gtk::prelude::*;

@@ -1,6 +1,7 @@
 use super::consts::*;
+use super::utils::*;
 use crate::crab_row::CrabRow;
-use gtk::glib::{clone, MainContext, Object};
+use gtk::glib::{clone, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{CustomFilter, FilterListModel, gio, Inhibit, SignalListItemFactory, SingleSelection};
@@ -161,31 +162,4 @@ impl Window {
 
         self.imp().crab_items_list.set_factory(Some(&factory));
     }
-}
-
-fn open_app(app_info: &AppInfo, window: &Window) {
-    let parent_window = window.imp().crab_items_list.root().unwrap().downcast::<gtk::Window>().unwrap();
-    let context = gtk::Window::new().display().app_launch_context();
-
-    window.hide();
-
-    let commandline = app_info.commandline().unwrap();
-    let main_context = MainContext::default();
-
-    main_context.spawn_local(clone!(@strong commandline, @strong window, @strong app_info, @strong context => async move {
-        if let Err(_) = async_process::Command::new(commandline.as_os_str()).output().await {
-            if let Err(err) = app_info.launch(&[], Some(&context)) {
-                gtk::MessageDialog::builder()
-                    .text(&format!("Failed to start {}!", app_info.name()))
-                    .secondary_text(&err.to_string())
-                    .message_type(gtk::MessageType::Error)
-                    .modal(true)
-                    .transient_for(&window)
-                    .build()
-                    .show();
-            }
-        }
-
-        parent_window.close();
-    }));
 }
