@@ -55,9 +55,9 @@ impl ObjectImpl for CrabTabs {
     fn properties() -> &'static [ParamSpec] {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![ParamSpecInt::new(
-                "currenttab",
-                "currenttab",
-                "currenttab",
+                "current-tab",
+                "current-tab",
+                "current-tab",
                 0,
                 1,
                 0,
@@ -70,7 +70,7 @@ impl ObjectImpl for CrabTabs {
 
     fn set_property(&self, _obj: &Self::Type, _id: usize, value: &Value, pspec: &ParamSpec) {
         match pspec.name() {
-            "currenttab" => {
+            "current-tab" => {
                 let new_tab: i32 = value.get().unwrap();
                 self.current_tab.replace(match new_tab {
                     0 => CrabTab::Programs,
@@ -84,7 +84,7 @@ impl ObjectImpl for CrabTabs {
 
     fn property(&self, _obj: &Self::Type, _id: usize, pspec: &ParamSpec) -> Value {
         match pspec.name() {
-            "currenttab" => match self.current_tab.take().borrow() {
+            "current-tab" => match self.current_tab.take().borrow() {
                 CrabTab::Programs => 0.to_value(),
                 CrabTab::Music => 1.to_value()
             },

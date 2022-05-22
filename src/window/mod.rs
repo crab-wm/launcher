@@ -47,8 +47,8 @@ impl Window {
         self.imp().crab_items_list.set_model(Some(&selection_model));
         self.imp().current_filter.replace(filter);
 
-        self.imp().tabs.connect_notify_local(Some("currenttab"), clone!(@weak self as window => move |crab_tabs, _| {
-            let (filter, selection_model) = setup_list_model(&window, &match crab_tabs.property::<i32>("currenttab") {
+        self.imp().tabs.connect_notify_local(Some("current-tab"), clone!(@weak self as window => move |crab_tabs, _| {
+            let (filter, selection_model) = setup_list_model(&window, &match crab_tabs.property::<i32>("current-tab") {
                 0 => CrabTab::Programs,
                 1 => CrabTab::Music,
                 _ => CrabTab::Programs

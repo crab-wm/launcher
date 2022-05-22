@@ -1,6 +1,22 @@
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate, Image, Label};
+use gtk::gio::{AppInfo, Icon};
+
+pub trait CrabRowExt {
+    fn get_name(&self) -> String;
+    fn get_icon(&self) -> Option<Icon>;
+}
+
+impl CrabRowExt for AppInfo {
+    fn get_name(&self) -> String {
+        self.name().to_string()
+    }
+
+    fn get_icon(&self) -> Option<Icon> {
+        self.icon()
+    }
+}
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/wm/crab/launcher/crab_row.ui")]

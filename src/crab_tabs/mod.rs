@@ -30,11 +30,11 @@ impl CrabTabs {
         if self.imp().tab_music.has_css_class("active-tab") {
             self.imp().tab_music.remove_css_class("active-tab");
             self.imp().tab_programs.add_css_class("active-tab");
-            self.set_property("currenttab", CrabTab::Programs.value());
+            self.set_property("current-tab", CrabTab::Programs.value());
         } else if self.imp().tab_programs.has_css_class("active-tab") {
             self.imp().tab_programs.remove_css_class("active-tab");
             self.imp().tab_music.add_css_class("active-tab");
-            self.set_property("currenttab", CrabTab::Music.value());
+            self.set_property("current-tab", CrabTab::Music.value());
         }
     }
 }
