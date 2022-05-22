@@ -3,6 +3,7 @@ mod crab_row;
 mod window;
 mod config;
 mod utils;
+mod crab_tabs;
 
 use std::io::Write;
 use std::fs::File;

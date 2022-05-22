@@ -18,7 +18,7 @@ impl Default for CrabRow {
 
 impl CrabRow {
     pub fn new() -> Self {
-        Object::new(&[]).expect("Failed to create ApplicationRow")
+        Object::new(&[]).expect("Failed to create CrabRow")
     }
 
     pub fn set_app_info(&self, app_info: &gio::AppInfo) {

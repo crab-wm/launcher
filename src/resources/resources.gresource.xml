@@ -3,5 +3,6 @@
     <gresource prefix="/wm/crab/launcher/">
         <file compressed="true" preprocess="xml-stripblanks">window.ui</file>
         <file compressed="true" preprocess="xml-stripblanks">crab_row.ui</file>
+        <file compressed="true" preprocess="xml-stripblanks">crab_tabs.ui</file>
     </gresource>
 </gresources>

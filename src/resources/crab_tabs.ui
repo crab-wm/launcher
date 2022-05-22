@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <template class="CrabTabs" parent="GtkBox">
+        <style>
+            <class name="tabs"/>
+        </style>
+        <property name="orientation">horizontal</property>
+        <property name="spacing">12</property>
+        <child>
+            <object class="GtkLabel" id="tab_programs">
+                <style>
+                    <class name="tab"/>
+                </style>
+                <property name="label">PROGRAMS</property>
+                <property name="halign">start</property>
+                <property name="margin-start">30</property>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="tab_music">
+                <style>
+                    <class name="tab"/>
+                </style>
+                <property name="label">MUSIC</property>
+                <property name="halign">start</property>
+            </object>
+        </child>
+    </template>
+</interface>

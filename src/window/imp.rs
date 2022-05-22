@@ -2,9 +2,10 @@ use crate::consts::*;
 use glib::subclass::InitializingObject;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, glib, ScrolledWindow};
+use gtk::{CustomFilter, gio, glib, ScrolledWindow};
 use gtk::{CompositeTemplate, Entry, ListView};
 use std::cell::{RefCell};
+use crate::crab_tabs::CrabTabs;
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
@@ -15,7 +16,10 @@ pub struct Window {
     pub scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]
     pub crab_items_list: TemplateChild<ListView>,
+    #[template_child]
+    pub tabs: TemplateChild<CrabTabs>,
     pub current_items: RefCell<Option<gio::ListStore>>,
+    pub current_filter: RefCell<CustomFilter>
 }
 
 #[glib::object_subclass]
@@ -42,8 +46,6 @@ impl ObjectImpl for Window {
 
         obj.set_decorated(false);
         obj.set_title(Some(APP_TITLE));
-
-        obj.imp().crab_items_list.set_can_focus(false);
     }
 }
 

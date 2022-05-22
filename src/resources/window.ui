@@ -23,6 +23,9 @@
                     </object>
                 </child>
                 <child>
+                    <object class="CrabTabs" id="tabs" />
+                </child>
+                <child>
                     <object class="GtkEntry" id="entry">
                         <property name="margin-start">30</property>
                         <property name="margin-end">30</property>

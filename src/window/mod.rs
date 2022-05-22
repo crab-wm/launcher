@@ -1,14 +1,16 @@
+use std::borrow::Borrow;
 use super::consts::*;
 use super::utils::*;
 use crate::crab_row::CrabRow;
 use gtk::glib::{clone, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{CustomFilter, FilterListModel, gio, Inhibit, SignalListItemFactory, SingleSelection};
+use gtk::{CustomFilter, gio, Inhibit, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
 use gtk::gio::{AppInfo};
+use crate::crab_tabs::imp::CrabTab;
 
-mod imp;
+pub(crate) mod imp;
 
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)
@@ -22,7 +24,14 @@ impl Window {
         Object::new(&[("application", app)]).expect("Failed to create `Window`.")
     }
 
-    fn current_items(&self) -> gio::ListStore {
+    pub fn current_filter(&self) -> CustomFilter {
+        self.imp()
+            .current_filter
+            .borrow()
+            .clone()
+    }
+
+    pub fn current_items(&self) -> gio::ListStore {
         self.imp()
             .current_items
             .borrow()
@@ -31,50 +40,26 @@ impl Window {
     }
 
     fn setup_window(&self) {
-        let model = gio::ListStore::new(AppInfo::static_type());
-        AppInfo::all().iter().for_each(|app_info| {
-            model.append(app_info);
-        });
+        self.imp().crab_items_list.set_can_focus(false);
+        self.imp().tabs.set_can_focus(false);
 
-        self.imp().current_items.replace(Some(model));
+        let (filter, selection_model) = setup_list_model(&self, self.imp().tabs.imp().current_tab.take().borrow());
+        self.imp().crab_items_list.set_model(Some(&selection_model));
+        self.imp().current_filter.replace(filter);
 
-        let filter = CustomFilter::new(clone!(@strong self as window => move |obj| {
-            let crab_entry = obj.downcast_ref::<gio::AppInfo>().unwrap();
-            let search = window.imp().entry.buffer().text();
+        self.imp().tabs.connect_notify_local(Some("currenttab"), clone!(@weak self as window => move |crab_tabs, _| {
+            let (filter, selection_model) = setup_list_model(&window, &match crab_tabs.property::<i32>("currenttab") {
+                0 => CrabTab::Programs,
+                1 => CrabTab::Music,
+                _ => CrabTab::Programs
+            });
 
-            if !search.is_empty() {
-                crab_entry
-                    .name()
-                    .to_lowercase()
-                    .contains(&search.as_str().to_lowercase()) || if crab_entry.description().is_some() {
-                    crab_entry.description().unwrap().to_lowercase().contains(&search.as_str().to_lowercase())
-                } else {
-                    false
-                }
-            } else {
-                true
-            }
+            window.imp().crab_items_list.set_model(Some(&selection_model));
+            window.imp().current_filter.replace(filter);
         }));
 
-        let filter_model = FilterListModel::new(Some(&self.current_items()), Some(&filter));
-
-        let sorter = gtk::CustomSorter::new(move |obj1, obj2| {
-            let app_info1 = obj1.downcast_ref::<AppInfo>().unwrap();
-            let app_info2 = obj2.downcast_ref::<AppInfo>().unwrap();
-
-            app_info1
-                .name()
-                .to_lowercase()
-                .cmp(&app_info2.name().to_lowercase())
-                .into()
-        });
-        let sorted_model = gtk::SortListModel::new(Some(&filter_model), Some(&sorter));
-
-        let selection_model = SingleSelection::new(Some(&sorted_model));
-        self.imp().crab_items_list.set_model(Some(&selection_model));
-
         self.imp().entry.connect_changed(clone!(@strong self as window => move |_| {
-            filter.changed(FilterChange::Different);
+            window.current_filter().changed(FilterChange::Different);
         }));
 
         self.imp().entry.connect_activate(clone!(@weak self as window, @weak selection_model => move |_| {
@@ -111,6 +96,11 @@ impl Window {
                         &selection_model.selected_item().unwrap().downcast::<AppInfo>().unwrap(),
                         &window,
                     );
+
+                    Inhibit(false)
+                }
+                KEY_TAB => {
+                    window.imp().tabs.change_tab();
 
                     Inhibit(false)
                 }

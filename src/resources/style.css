@@ -64,3 +64,13 @@ row:selected > box {
     font-size: 32px;
     font-weight: bold;
 }
+
+.tab {
+    padding: 5px 10px;
+    background: @bg-secondary-color;
+}
+
+.active-tab {
+    font-weight: bold;
+    background: @accent-color;
+}
