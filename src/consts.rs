@@ -38,3 +38,7 @@ pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";
 
 pub const API_YOUTUBE_GET_PLAYLISTS_URL: &str =
     "https://youtube.googleapis.com/youtube/v3/playlists?part=id%2Csnippet&channelId=";
+
+pub const DBUS_SESSION_NAME: &str = "wm.crab.GDBus.LauncherServer";
+pub const DBUS_OBJECT_PATH: &str = "/wm/crab/GDBus/LauncherObject";
+pub const DBUS_INTERFACE_NAME: &str = "wm.crab.GDBus.LauncherInterface";

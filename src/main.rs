@@ -8,6 +8,7 @@ mod crab_tabs;
 mod music_object;
 mod utils;
 mod window;
+mod daemon;
 
 use gtk::gdk::Display;
 use gtk::prelude::*;
@@ -16,9 +17,11 @@ use gtk::{gio, CssProvider, StyleContext};
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
+use gtk::glib::{clone, MainContext, PRIORITY_DEFAULT, Receiver};
 
 use crate::config::Config;
-use crate::utils::display_err;
+use crate::utils::{display_err};
+use crate::daemon::{CrabDaemonClient, CrabDaemonServer};
 use consts::*;
 use window::Window;
 
@@ -42,6 +45,22 @@ async fn main() {
                 println!("{}", CONFIG_GENERATED);
                 exit(0);
             }
+            "--daemon" => {
+                let crab_daemon = CrabDaemonServer::new();
+
+                let app = Application::builder().application_id(APP_ID).build();
+
+                app.connect_startup(|_| load_css());
+                app.connect_activate(|app| build_ui(app, false));
+
+                app.run();
+
+                crab_daemon.start();
+            },
+            "--show" => {
+                let crab_daemon = CrabDaemonClient::new();
+                crab_daemon.run_method("ShowWindow");
+            }
             a => display_err(format!("Uknown parameter: {}", a).as_str()),
         }
     }
@@ -51,7 +70,7 @@ async fn main() {
     let app = Application::builder().application_id(APP_ID).build();
 
     app.connect_startup(|_| load_css());
-    app.connect_activate(build_ui);
+    app.connect_activate(|app| build_ui(app, true));
 
     app.run();
 }
@@ -68,7 +87,25 @@ fn load_css() {
     );
 }
 
-fn build_ui(app: &Application) {
+fn build_ui(app: &Application, show_window: bool) {
     let window = Window::new(app);
-    window.present();
+
+    let (_tx, rx) = MainContext::channel::<bool>(PRIORITY_DEFAULT);
+
+    rx.attach(None, clone!(@strong window => move |show_window| {
+        println!("Got the event!");
+
+        if show_window {
+            window.present();
+        }
+        else {
+            window.hide();
+        }
+
+        Continue(true)
+    }));
+
+    if show_window {
+        window.present();
+    }
 }

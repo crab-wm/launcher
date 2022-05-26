@@ -9,7 +9,6 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, CustomFilter, Inhibit, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
-use std::process::Command;
 
 mod imp;
 
@@ -113,7 +112,7 @@ impl Window {
                         open_app(&row_data, &window);
                     }
                     else {
-                        let row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();
+                        let _row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();
 
                         //let url = format!("{}", );
                         //Command::new(format!("xdg-open {}", url)).spawn().unwrap();

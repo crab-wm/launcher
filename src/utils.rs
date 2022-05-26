@@ -4,7 +4,7 @@ use crate::music_object::{MusicData, MusicObject};
 use crate::{
     Config, Window, API_YOUTUBE_GET_PLAYLISTS_URL, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS,
 };
-use gtk::gio::AppInfo;
+use gtk::gio::{AppInfo};
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
