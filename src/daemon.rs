@@ -1,9 +1,9 @@
 use std::process::exit;
 use gtk::gio;
-use gtk::gio::{BusNameOwnerFlags, BusNameWatcherFlags, BusType, DBusConnection, DBusMessage, DBusMethodInvocation, DBusNodeInfo, DBusSendMessageFlags};
-use gtk::glib::{MainContext, MainLoop, PRIORITY_DEFAULT, Variant, VariantTy};
+use gtk::gio::{BusNameOwnerFlags, BusNameWatcherFlags, BusType, DBusConnection, DBusMessage, DBusMethodInvocation, DBusNodeInfo, DBusSendMessageFlags, OwnerId};
+use gtk::glib::{clone, MainContext, MainLoop, Variant, VariantTy};
 use crate::consts::*;
-use crate::Window;
+use crate::gio::glib::Sender;
 
 const INTROSPECTION_XML: &str = "\
 <node>\
@@ -19,26 +19,22 @@ impl CrabDaemonServer {
         Self
     }
 
-    pub fn start(&self) {
+    pub fn start(&self, tx: Sender<bool>) -> OwnerId {
         let own_name = gio::bus_own_name(
             BusType::Session,
             DBUS_SESSION_NAME,
             BusNameOwnerFlags::NONE,
-            Self::on_bus_acquired,
+            move |conn, name| Self::on_bus_acquired(conn, name, tx.clone()),
             Self::on_name_acquired,
             Self::on_name_lost,
         );
 
-        MainLoop::new(None, false).run();
-
-        gio::bus_unown_name(own_name);
+        own_name
     }
 
-    fn handle_method_call(_connection: DBusConnection, _sender: &str, _object_path: &str, _interface_name: &str, method_name: &str, _parameters: Variant, _invocation: DBusMethodInvocation) {
+    fn handle_method_call(_connection: DBusConnection, _sender: &str, _object_path: &str, _interface_name: &str, method_name: &str, _parameters: Variant, _invocation: DBusMethodInvocation, tx: Sender<bool>) {
         match method_name {
             "ShowWindow" => {
-                println!("Showing window...");
-                let (tx, _rx) = MainContext::channel::<bool>(PRIORITY_DEFAULT);
                 tx.send(true).unwrap();
             }
             _ => {}
@@ -53,13 +49,13 @@ impl CrabDaemonServer {
         true
     }
 
-    fn on_bus_acquired(connection: DBusConnection, _name: &str) {
+    fn on_bus_acquired(connection: DBusConnection, _name: &str, tx: Sender<bool>) {
         let introspection_data = DBusNodeInfo::for_xml(INTROSPECTION_XML).unwrap();
 
         let _registration_id = connection.register_object(
             DBUS_OBJECT_PATH,
             &introspection_data.lookup_interface(DBUS_INTERFACE_NAME).unwrap(),
-            Self::handle_method_call,
+            move |connection, sender, object_path, interface_name, method_name, parameters, invocation| Self::handle_method_call(connection, sender, object_path, interface_name, method_name, parameters, invocation, tx.clone()),
             Self::handle_get_property,
             Self::handle_set_property
         ).unwrap();

@@ -10,6 +10,7 @@ mod utils;
 mod window;
 mod daemon;
 
+use std::cell::RefCell;
 use gtk::gdk::Display;
 use gtk::prelude::*;
 use gtk::Application;
@@ -17,7 +18,8 @@ use gtk::{gio, CssProvider, StyleContext};
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
-use gtk::glib::{clone, MainContext, PRIORITY_DEFAULT, Receiver};
+use std::rc::Rc;
+use gtk::glib::{clone, MainContext, MainLoop, PRIORITY_DEFAULT, Receiver};
 
 use crate::config::Config;
 use crate::utils::{display_err};
@@ -27,6 +29,8 @@ use window::Window;
 
 #[tokio::main]
 async fn main() {
+    gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
+
     let mut args = std::env::args();
     let arg = args.nth(1);
 
@@ -47,15 +51,20 @@ async fn main() {
             }
             "--daemon" => {
                 let crab_daemon = CrabDaemonServer::new();
+                let (tx, rx) = MainContext::channel::<bool>(PRIORITY_DEFAULT);
+                let rx = Rc::new(RefCell::new(Some(rx)));
 
                 let app = Application::builder().application_id(APP_ID).build();
 
                 app.connect_startup(|_| load_css());
-                app.connect_activate(|app| build_ui(app, false));
+                app.connect_activate(move |app| build_ui(app, false, Some(rx.clone())));
 
-                app.run();
+                let owner_id = crab_daemon.start(tx);
 
-                crab_daemon.start();
+                app.run_with_args::<&str>(&[]);
+
+                MainLoop::new(None, false).run();
+                gio::bus_unown_name(owner_id);
             },
             "--show" => {
                 let crab_daemon = CrabDaemonClient::new();
@@ -63,14 +72,14 @@ async fn main() {
             }
             a => display_err(format!("Uknown parameter: {}", a).as_str()),
         }
-    }
 
-    gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
+        return;
+    }
 
     let app = Application::builder().application_id(APP_ID).build();
 
     app.connect_startup(|_| load_css());
-    app.connect_activate(|app| build_ui(app, true));
+    app.connect_activate(|app| build_ui(app, true, None));
 
     app.run();
 }
@@ -87,23 +96,23 @@ fn load_css() {
     );
 }
 
-fn build_ui(app: &Application, show_window: bool) {
+fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<Receiver<bool>>>>>) {
     let window = Window::new(app);
 
-    let (_tx, rx) = MainContext::channel::<bool>(PRIORITY_DEFAULT);
+    if let Some(rx) = rx {
+        if let Some(rx) = rx.take() {
+            rx.attach(None, clone!(@strong window => move |show_window| {
+                if show_window {
+                    window.present();
+                }
+                else {
+                    window.hide();
+                }
 
-    rx.attach(None, clone!(@strong window => move |show_window| {
-        println!("Got the event!");
-
-        if show_window {
-            window.present();
+                Continue(true)
+            }));
         }
-        else {
-            window.hide();
-        }
-
-        Continue(true)
-    }));
+    }
 
     if show_window {
         window.present();
