@@ -24,7 +24,7 @@ use sysinfo::{System, SystemExt};
 
 use crate::config::Config;
 use crate::utils::{display_err};
-use crate::daemon::{CrabDaemonClient, CrabDaemonServer};
+use crate::daemon::{CrabDaemonClient, CrabDaemonMethod, CrabDaemonServer};
 use consts::*;
 use window::Window;
 
@@ -65,13 +65,9 @@ fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<R
 
     if let Some(rx) = rx {
         if let Some(rx) = rx.take() {
-            rx.attach(None, clone!(@strong window => move |show_window| {
-                if show_window {
-                    window.present();
-                }
-                else {
-                    window.hide();
-                }
+            rx.attach(None, clone!(@strong window => move |_| {
+                window.present();
+                window.clean_up();
 
                 Continue(true)
             }));
@@ -85,7 +81,7 @@ fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<R
 
 fn emit_show_window() {
     let crab_daemon = CrabDaemonClient::new();
-    crab_daemon.run_method("ShowWindow");
+    crab_daemon.run_method(CrabDaemonMethod::ShowWindow);
 }
 
 fn generate_config() {

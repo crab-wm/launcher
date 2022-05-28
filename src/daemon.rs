@@ -1,4 +1,5 @@
 use std::process::exit;
+use std::str::FromStr;
 use gtk::gio;
 use gtk::gio::{BusNameOwnerFlags, BusNameWatcherFlags, BusType, DBusConnection, DBusMessage, DBusMethodInvocation, DBusNodeInfo, DBusSendMessageFlags, OwnerId};
 use gtk::glib::{MainLoop, Variant, VariantTy};
@@ -11,6 +12,30 @@ const INTROSPECTION_XML: &str = "\
     <method name='ShowWindow'/>\
   </interface>\
 </node>";
+
+#[derive(Copy, Clone)]
+pub enum CrabDaemonMethod {
+    ShowWindow
+}
+
+impl FromStr for CrabDaemonMethod {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ShowWindow" => Ok(Self::ShowWindow),
+            _ => Err(())
+        }
+    }
+}
+
+impl ToString for CrabDaemonMethod {
+    fn to_string(&self) -> String {
+        match self {
+            CrabDaemonMethod::ShowWindow => "ShowWindow",
+        }.into()
+    }
+}
 
 pub struct CrabDaemonServer;
 
@@ -33,11 +58,12 @@ impl CrabDaemonServer {
     }
 
     fn handle_method_call(_connection: DBusConnection, _sender: &str, _object_path: &str, _interface_name: &str, method_name: &str, _parameters: Variant, _invocation: DBusMethodInvocation, tx: Sender<bool>) {
-        match method_name {
-            "ShowWindow" => {
-                tx.send(true).unwrap();
+        let method = CrabDaemonMethod::from_str(method_name);
+
+        if let Ok(method) = method {
+            match method {
+                CrabDaemonMethod::ShowWindow => tx.send(true).unwrap(),
             }
-            _ => {}
         }
     }
 
@@ -75,13 +101,13 @@ impl CrabDaemonClient {
         Self
     }
 
-    pub fn run_method(&self, method_name: &'static str) {
+    pub fn run_method(&self, method: CrabDaemonMethod) {
         let watcher_id = gio::bus_watch_name(
             BusType::Session,
             DBUS_SESSION_NAME,
             BusNameWatcherFlags::NONE,
-            |connection, name, name_owner| {
-                Self::on_name_appeared(connection, name, name_owner, method_name);
+            move |connection, name, name_owner| {
+                Self::on_name_appeared(connection, name, name_owner, method);
             },
             Self::on_name_vanished
         );
@@ -91,12 +117,12 @@ impl CrabDaemonClient {
         gio::bus_unwatch_name(watcher_id);
     }
 
-    fn on_name_appeared(connection: DBusConnection, _name: &str, name_owner: &str, method_name: &str) {
+    fn on_name_appeared(connection: DBusConnection, _name: &str, name_owner: &str, method: CrabDaemonMethod) {
         let method_call_message = DBusMessage::new_method_call(
             Some(name_owner),
             DBUS_OBJECT_PATH,
             Some(DBUS_INTERFACE_NAME),
-            method_name
+            &method.to_string()
         );
 
         connection.send_message(&method_call_message, DBusSendMessageFlags::NONE).unwrap();

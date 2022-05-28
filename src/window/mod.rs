@@ -121,7 +121,7 @@ impl Window {
                     Inhibit(false)
                 }
                 KEY_TAB => {
-                    window.imp().tabs.change_tab();
+                    window.imp().tabs.change_tab(None);
 
                     Inhibit(false)
                 }
@@ -173,6 +173,16 @@ impl Window {
         }));
 
         self.imp().crab_items_list.set_factory(Some(&factory));
+    }
+
+    pub fn clean_up(&self) {
+        self.current_selection_model().select_item(0, true);
+        self.imp().crab_items_list.activate_action("list.scroll-to-item", Some(&0.to_variant())).unwrap();
+
+        self.imp().entry.buffer().set_text("");
+        self.imp().entry.set_placeholder_text(Some(PLACEHOLDER_PROGRAMS));
+
+        self.imp().tabs.change_tab(Some(CrabTab::Programs));
     }
 
     pub fn hide_or_close(&self) {

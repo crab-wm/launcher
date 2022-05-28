@@ -13,7 +13,7 @@ pub enum CrabTab {
 }
 
 impl CrabTab {
-    pub fn value(&self) -> i32 {
+    pub fn to_value(&self) -> i32 {
         match self {
             Self::Programs => 0,
             Self::Music => 1,

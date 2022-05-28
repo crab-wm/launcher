@@ -26,15 +26,47 @@ impl CrabTabs {
         self.imp().tab_programs.add_css_class("active-tab");
     }
 
-    pub fn change_tab(&self) {
-        if self.imp().tab_music.has_css_class("active-tab") {
-            self.imp().tab_music.remove_css_class("active-tab");
-            self.imp().tab_programs.add_css_class("active-tab");
-            self.set_property("current-tab", CrabTab::Programs.value());
-        } else if self.imp().tab_programs.has_css_class("active-tab") {
-            self.imp().tab_programs.remove_css_class("active-tab");
-            self.imp().tab_music.add_css_class("active-tab");
-            self.set_property("current-tab", CrabTab::Music.value());
+    pub fn change_tab(&self, tab: Option<CrabTab>) {
+        if let Some(tab) = tab {
+            match tab {
+                CrabTab::Programs => {
+                    self.imp().tab_music.remove_css_class("active-tab");
+                    self.imp().tab_programs.add_css_class("active-tab");
+                    self.set_property("current-tab", CrabTab::Programs.to_value());
+                },
+                CrabTab::Music => {
+                    self.imp().tab_programs.remove_css_class("active-tab");
+                    self.imp().tab_music.add_css_class("active-tab");
+                    self.set_property("current-tab", CrabTab::Music.to_value());
+                },
+            };
+
+            return;
+        }
+
+        match self.get_current_tab() {
+            CrabTab::Programs => {
+                self.imp().tab_programs.remove_css_class("active-tab");
+                self.imp().tab_music.add_css_class("active-tab");
+                self.set_property("current-tab", CrabTab::Music.to_value());
+            }
+            CrabTab::Music => {
+                self.imp().tab_music.remove_css_class("active-tab");
+                self.imp().tab_programs.add_css_class("active-tab");
+                self.set_property("current-tab", CrabTab::Programs.to_value());
+            }
+        }
+    }
+
+    fn get_current_tab(&self) -> CrabTab {
+        if self.imp().tab_programs.has_css_class("active-tab") {
+            CrabTab::Programs
+        }
+        else if self.imp().tab_music.has_css_class("active-tab") {
+            CrabTab::Music
+        }
+        else {
+            CrabTab::Programs
         }
     }
 }
