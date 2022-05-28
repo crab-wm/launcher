@@ -34,12 +34,7 @@ pub fn open_app(app_info: &AppInfo, window: &Window, is_daemon: bool) {
             }
         }
 
-        if is_daemon {
-            window.hide();
-        }
-        else {
-            window.close();
-        }
+        window.hide_or_close();
     }));
 }
 

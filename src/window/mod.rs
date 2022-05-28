@@ -102,12 +102,7 @@ impl Window {
                     Inhibit(false)
                 }
                 KEY_ESC => {
-                    if window.property("is-daemon") {
-                        window.hide();
-                    }
-                    else {
-                        window.close();
-                    }
+                    window.hide_or_close();
 
                     Inhibit(true)
                 }
@@ -179,5 +174,14 @@ impl Window {
         }));
 
         self.imp().crab_items_list.set_factory(Some(&factory));
+    }
+
+    pub fn hide_or_close(&self) {
+        if self.property("is-daemon") {
+            self.hide();
+        }
+        else {
+            self.close();
+        }
     }
 }
