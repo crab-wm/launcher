@@ -1,15 +1,14 @@
 use crate::config::ConfigMusicService;
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;
-use crate::{Config, Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS};
+use crate::{Config, Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE};
 use gtk::gio::{AppInfo};
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, CustomFilter, FilterListModel, SingleSelection};
 use std::process::exit;
-use crate::music_service::*;
-use crate::music_service::youtube_service::*;
+use crate::temp_data::TempData;
 
 pub fn open_app(app_info: &AppInfo, window: &Window) {
     let context = gtk::Window::new().display().app_launch_context();
@@ -93,19 +92,18 @@ pub fn get_programs_model(window: &Window) -> (CustomFilter, SingleSelection) {
     (filter, selection_model)
 }
 
-pub async fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
-    // TODO: Change `Config` to be singeleton
-    let config = Config::new();
-    let music_config = config.music.unwrap();
-
+pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
     window
         .imp()
         .entry
         .set_placeholder_text(Some(PLACEHOLDER_MUSIC));
 
     let model = gio::ListStore::new(MusicObject::static_type());
-    get_all_user_playlists(music_config.account_id.as_str(), music_config.service)
-        .await
+
+    let temp_data = TempData::new();
+
+    temp_data
+        .playlists
         .iter()
         .for_each(|music_object| {
             model.append(music_object);
@@ -154,21 +152,25 @@ pub fn setup_programs_model(window: &Window) -> (CustomFilter, SingleSelection) 
     get_programs_model(window)
 }
 
-pub async fn setup_list_model_async(
+pub fn setup_list_model(
     window: &Window,
     tab: &CrabTab,
 ) -> (CustomFilter, SingleSelection) {
     match tab {
         CrabTab::Programs => get_programs_model(window),
-        CrabTab::Music => get_music_model(window).await,
+        CrabTab::Music => get_music_model(window),
     }
 }
 
-async fn get_all_user_playlists(user_id: &str, service: ConfigMusicService) -> Vec<MusicObject> {
-    match service {
-        ConfigMusicService::Youtube => {
-            let youtube_service = YoutubeService::new(user_id.to_string());
-            youtube_service.get_all_playlists().await
-        },
+pub fn get_temp_music_file_path() -> Option<String> {
+    let config = Config::new();
+    let config = config.music;
+
+    if config.is_none() {
+        return None;
+    }
+
+    match config.unwrap().service {
+        ConfigMusicService::Youtube => Some(DATA_MUSIC_YOUTUBE_TEMP_FILE.to_string())
     }
 }

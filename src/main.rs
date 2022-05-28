@@ -10,7 +10,9 @@ mod utils;
 mod window;
 mod daemon;
 mod music_service;
+mod temp_data;
 
+use serde_json::json;
 use std::cell::RefCell;
 use std::fs;
 use gtk::gdk::Display;
@@ -22,13 +24,17 @@ use std::io::Write;
 use std::process::exit;
 use std::rc::Rc;
 use gtk::glib::{clone, MainContext, MainLoop, PRIORITY_DEFAULT, Receiver};
+use gtk::subclass::prelude::ObjectSubclassIsExt;
 use sysinfo::{System, SystemExt};
 
 use crate::config::Config;
-use crate::utils::{display_err};
+use crate::utils::{display_err, get_temp_music_file_path};
 use crate::daemon::{CrabDaemonClient, CrabDaemonMethod, CrabDaemonServer};
 use consts::*;
 use window::Window;
+use crate::music_object::MusicData;
+use crate::music_service::MusicServiceExt;
+use crate::music_service::youtube_service::YoutubeService;
 
 #[tokio::main]
 async fn main() {
@@ -38,16 +44,17 @@ async fn main() {
     if let Some(arg) = arg {
         match arg.as_str() {
             "--generate-config" => generate_config(),
+            "--fetch" => fetch_playlists().await,
             "--show" => emit_show_window(),
             "--run" => run_standalone(),
-            "--daemon" => run_daemon(),
+            "--daemon" => run_daemon().await,
             param => display_err(format!("Uknown parameter: {}", param).as_str()),
         }
 
         exit(0);
     }
 
-    run_daemon();
+    run_daemon().await;
 }
 
 fn load_css() {
@@ -115,7 +122,9 @@ fn generate_config() {
     exit(0);
 }
 
-fn run_daemon() {
+async fn run_daemon() {
+    fetch_playlists().await;
+
     let s = System::new_all();
     let is_running = s.processes_by_exact_name(APP_TITLE).count() > 1;
 
@@ -151,4 +160,30 @@ fn run_standalone() {
     app.connect_activate(|app| build_ui(app, true, None));
 
     app.run_with_args::<&str>(&[]);
+}
+
+async fn fetch_playlists() {
+    let config = Config::new();
+
+    if config.music.is_none() {
+        display_err(ERROR_MUSIC_CONFIG);
+    }
+
+    let data_dir = dirs::data_local_dir().unwrap();
+    let data_dir = data_dir.to_str().unwrap();
+
+    fs::create_dir_all(format!(
+        "{}{}",
+        data_dir,
+        DATA_DIR
+    )).unwrap();
+
+    let youtube_service = YoutubeService::new(config.music.unwrap().account_id);
+    let playlists = youtube_service.get_all_playlists().await;
+    let playlists = json!(playlists.iter().map(|music_object| music_object.imp().data.take()).collect::<Vec<MusicData>>());
+
+    serde_json::to_writer(
+        &File::create(format!("{}{}", data_dir, get_temp_music_file_path().unwrap())).unwrap(),
+        &playlists
+    ).unwrap();
 }

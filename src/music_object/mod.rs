@@ -4,6 +4,7 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use std::borrow::Borrow;
 use std::cell::RefCell;
+use serde::{Serialize, Deserialize};
 use crate::config::ConfigMusicService;
 use crate::consts::*;
 
@@ -43,7 +44,7 @@ impl CrabRowExt for MusicObject {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct MusicData {
     pub id: String,
     pub title: String,

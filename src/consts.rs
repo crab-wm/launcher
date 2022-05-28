@@ -1,6 +1,10 @@
 pub const APP_ID: &str = "wm.crab.launcher";
 pub const APP_TITLE: &str = "crab-launcher";
 
+pub const DATA_DIR: &str = "/crab/launcher";
+pub const DATA_MUSIC_YOUTUBE_TEMP_FILE: &str = "/crab/launcher/youtube.temp";
+//pub const DATA_MUSIC_SPOTIFY_TEMP_FILE: &str = "/crab/launcher/spotify.temp";
+
 pub const CONFIG_USER_PATH: &str = "/crab/launcher.yaml";
 pub const CONFIG_DEFAULT_PATH: &str = "/crab/launcher_def.yaml";
 pub const CONFIG_USER_DIR: &str = "/crab";
@@ -21,6 +25,7 @@ music:
   service: \"youtube\"
 ";
 
+pub const ERROR_MUSIC_CONFIG: &str = "You have to configure music service in the config file.";
 pub const ERROR_DAEMON: &str = "You cannot run more than one daemon instance. Close all running services and try again.";
 pub const ERROR_RESOURCES: &str = "Failed to register resources.";
 pub const ERROR_DISPLAY: &str = "Could not connect to a display.";
@@ -40,7 +45,7 @@ pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
 pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";
 
 pub const API_YOUTUBE_GET_PLAYLISTS_URL: &str =
-    "https://youtube.googleapis.com/youtube/v3/playlists?part=id%2Csnippet&channelId=";
+    "https://youtube.googleapis.com/youtube/v3/playlists?part=id,snippet&channelId=";
 pub const API_YOUTUBE_GET_PLAYLIST_ITEMS_URL: &str =
     "https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=1&playlistId=";
 

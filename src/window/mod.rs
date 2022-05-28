@@ -52,19 +52,15 @@ impl Window {
         self.imp().current_selection_model.replace(selection_model);
 
         self.imp().tabs.connect_notify_local(Some("current-tab"), clone!(@weak self as window => move |crab_tabs, _| {
-            let main_context = MainContext::default();
+            let (filter, selection_model) = setup_list_model(&window, &match crab_tabs.property::<i32>("current-tab") {
+                0 => CrabTab::Programs,
+                1 => CrabTab::Music,
+                _ => CrabTab::Programs
+            });
 
-            main_context.spawn_local(clone!(@weak window, @weak crab_tabs => async move {
-                let (filter, selection_model) = setup_list_model_async(&window, &match crab_tabs.property::<i32>("current-tab") {
-                    0 => CrabTab::Programs,
-                    1 => CrabTab::Music,
-                    _ => CrabTab::Programs
-                }).await;
-
-                window.imp().crab_items_list.set_model(Some(&selection_model));
-                window.imp().current_filter.replace(filter);
-                window.imp().current_selection_model.replace(selection_model);
-            }));
+            window.imp().crab_items_list.set_model(Some(&selection_model));
+            window.imp().current_filter.replace(filter);
+            window.imp().current_selection_model.replace(selection_model);
         }));
 
         self.imp()
