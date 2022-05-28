@@ -12,7 +12,7 @@ use gtk::{gio, CustomFilter, FilterListModel, SingleSelection};
 use serde::Deserialize;
 use std::process::exit;
 
-pub fn open_app(app_info: &AppInfo, window: &Window, is_daemon: bool) {
+pub fn open_app(app_info: &AppInfo, window: &Window) {
     let context = gtk::Window::new().display().app_launch_context();
 
     window.hide();

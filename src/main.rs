@@ -45,14 +45,6 @@ async fn main() {
         exit(0);
     }
 
-    let s = System::new_all();
-    let is_running = s.processes_by_exact_name(APP_TITLE).count() > 1;
-
-    if is_running {
-        emit_show_window();
-        exit(1);
-    }
-
     run_daemon();
 }
 
@@ -111,6 +103,13 @@ fn generate_config() {
 }
 
 fn run_daemon() {
+    let s = System::new_all();
+    let is_running = s.processes_by_exact_name(APP_TITLE).count() > 1;
+
+    if is_running {
+        display_err(ERROR_DAEMON);
+    }
+
     gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
 
     let crab_daemon = CrabDaemonServer::new();

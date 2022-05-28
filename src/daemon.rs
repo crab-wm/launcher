@@ -1,7 +1,7 @@
 use std::process::exit;
 use gtk::gio;
 use gtk::gio::{BusNameOwnerFlags, BusNameWatcherFlags, BusType, DBusConnection, DBusMessage, DBusMethodInvocation, DBusNodeInfo, DBusSendMessageFlags, OwnerId};
-use gtk::glib::{clone, MainContext, MainLoop, Variant, VariantTy};
+use gtk::glib::{MainLoop, Variant, VariantTy};
 use crate::consts::*;
 use crate::gio::glib::Sender;
 

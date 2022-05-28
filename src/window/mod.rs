@@ -76,8 +76,7 @@ impl Window {
             clone!(@weak self as window => move |_| {
                 open_app(
                     &window.current_selection_model().selected_item().unwrap().downcast::<AppInfo>().unwrap(),
-                    &window,
-                    window.property("is-daemon")
+                    &window
                 );
             }),
         );
@@ -110,7 +109,7 @@ impl Window {
                     let row_data = &selection_model.selected_item().unwrap().downcast::<AppInfo>();
 
                     if let Ok(row_data) = row_data {
-                        open_app(&row_data, &window, window.property("is-daemon"));
+                        open_app(&row_data, &window);
                     }
                     else {
                         let _row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();

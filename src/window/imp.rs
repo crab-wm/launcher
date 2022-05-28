@@ -9,7 +9,6 @@ use std::cell::{Cell, RefCell};
 use gtk::glib::{ParamFlags, ParamSpecBoolean};
 use once_cell::sync::Lazy;
 use crate::gio::glib::{ParamSpec, Value};
-use crate::gio::glib::subclass::Signal;
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
