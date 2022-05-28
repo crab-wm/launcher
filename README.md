@@ -10,6 +10,12 @@ After downloading the binary generate default config file and copy it to `~/.con
 
 To generate the config file, run `crab-launcher --generate-config`.
 
+After generating config file you have two options:
+- run standalone version: `crab-launcher --run`
+- run daemon and show window if you want to: `crab-launcher --daemon`, `crab-launcher --show`
+
+You made it!
+
 ## Screenshots
 Here are some screenshots of this app.
 
@@ -38,4 +44,5 @@ opacity: 1.0
 music:
   account_id: ""
   service: "youtube"
+  api_key: ""
 ```
