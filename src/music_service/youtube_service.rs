@@ -1,6 +1,6 @@
 use gtk::subclass::prelude::ObjectSubclassIsExt;
 use serde::Deserialize;
-use crate::{API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, API_YOUTUBE_GET_PLAYLISTS_URL, CONFIG};
+use crate::{API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, API_YOUTUBE_GET_PLAYLISTS_URL};
 use crate::music_object::{MusicData, MusicObject};
 use crate::music_service::MusicServiceExt;
 use async_trait::async_trait;

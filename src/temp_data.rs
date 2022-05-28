@@ -1,7 +1,5 @@
 use std::fs;
-use gtk::subclass::prelude::ObjectSubclassIsExt;
 use crate::{CONFIG, MusicData};
-use crate::music_object::MusicObject;
 use crate::utils::get_temp_music_file_path;
 
 pub struct TempData {

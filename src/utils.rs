@@ -3,14 +3,13 @@ use std::cell::RefCell;
 use crate::config::{ConfigMusic, ConfigMusicService};
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;
-use crate::{Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE, CONFIG, MusicData, Config, TEMP_DATA};
+use crate::{Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE, MusicData, TEMP_DATA};
 use gtk::gio::{AppInfo};
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, CustomFilter, FilterListModel, SingleSelection};
 use std::process::exit;
-use crate::temp_data::TempData;
 
 pub fn open_app(app_info: &AppInfo, window: &Window) {
     let context = gtk::Window::new().display().app_launch_context();
