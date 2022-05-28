@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use crate::config::{ConfigMusic, ConfigMusicService};
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;
-use crate::{Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE, CONFIG, MusicData, Config};
+use crate::{Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE, CONFIG, MusicData, Config, TEMP_DATA};
 use gtk::gio::{AppInfo};
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
@@ -102,13 +102,18 @@ pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
 
     let model = gio::ListStore::new(MusicObject::static_type());
 
-    let temp_data = TempData::new();
+    let temp_data = TEMP_DATA.lock().unwrap();
 
     temp_data
         .playlists
         .iter()
+        .map(|music_data| {
+            let music_object = MusicObject::new();
+            music_object.imp().data.replace(music_data.clone());
+            music_object
+        })
         .for_each(|music_object| {
-            model.append(music_object);
+            model.append(&music_object);
         });
 
     window.imp().current_items.replace(Some(model));

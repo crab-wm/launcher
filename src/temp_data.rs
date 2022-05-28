@@ -5,7 +5,7 @@ use crate::music_object::MusicObject;
 use crate::utils::get_temp_music_file_path;
 
 pub struct TempData {
-    pub playlists: Vec<MusicObject>
+    pub playlists: Vec<MusicData>
 }
 
 impl TempData {
@@ -40,16 +40,8 @@ impl TempData {
             };
         }
 
-        let playlists = playlists.unwrap().iter().map(|playlist| {
-            let music_object = MusicObject::new();
-
-            music_object.imp().data.replace(playlist.clone());
-
-            music_object
-        }).collect();
-
         Self {
-            playlists
+            playlists: playlists.unwrap()
         }
     }
 }

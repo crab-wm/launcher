@@ -34,8 +34,11 @@ use window::Window;
 use crate::music_object::MusicData;
 use crate::music_service::MusicServiceExt;
 use crate::music_service::youtube_service::YoutubeService;
+use crate::temp_data::TempData;
 
 pub static CONFIG: Lazy<Mutex<Config>> = Lazy::new(|| Mutex::new(Config::new()));
+
+pub static TEMP_DATA: Lazy<Mutex<TempData>> = Lazy::new(|| Mutex::new(TempData::new()));
 
 #[tokio::main]
 async fn main() {
