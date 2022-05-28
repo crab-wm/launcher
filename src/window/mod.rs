@@ -1,3 +1,4 @@
+use std::process::Command;
 use super::consts::*;
 use super::utils::*;
 use crate::crab_row::CrabRow;
@@ -80,8 +81,35 @@ impl Window {
                 );
             }),
         );
+    }
 
+    fn setup_factory(&self) {
+        let factory = SignalListItemFactory::new();
+
+        factory.connect_setup(move |_, list_item| {
+            let crab_row = CrabRow::new();
+            list_item.set_child(Some(&crab_row));
+        });
+
+        factory.connect_bind(clone!(@weak self as window => move |_, list_item| {
+            let crab_row = list_item.child().unwrap().downcast::<CrabRow>().unwrap();
+
+            let row_data = list_item.item().unwrap().downcast::<AppInfo>();
+            if let Err(_) = row_data {
+                let row_data = list_item.item().unwrap().downcast::<MusicObject>().unwrap();
+                crab_row.set_row_data(&row_data);
+            }
+            else {
+                crab_row.set_row_data(&row_data.unwrap());
+            }
+        }));
+
+        self.imp().crab_items_list.set_factory(Some(&factory));
+    }
+
+    fn setup_keybinds(&self) {
         let controller = gtk::EventControllerKey::new();
+
         controller.connect_key_pressed(clone!(@strong self as window => move |_, key, keycode, _| {
             let selection_model = window.current_selection_model();
 
@@ -114,8 +142,10 @@ impl Window {
                     else {
                         let _row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();
 
-                        //let url = format!("{}", );
-                        //Command::new(format!("xdg-open {}", url)).spawn().unwrap();
+                        let url = format!("{}", "https://google.com/");
+                        Command::new("xdg-open").arg(url).spawn().unwrap();
+
+                        window.hide_or_close();
                     }
 
                     Inhibit(false)
@@ -149,30 +179,6 @@ impl Window {
         }));
 
         self.add_controller(&controller);
-    }
-
-    fn setup_factory(&self) {
-        let factory = SignalListItemFactory::new();
-
-        factory.connect_setup(move |_, list_item| {
-            let crab_row = CrabRow::new();
-            list_item.set_child(Some(&crab_row));
-        });
-
-        factory.connect_bind(clone!(@weak self as window => move |_, list_item| {
-            let crab_row = list_item.child().unwrap().downcast::<CrabRow>().unwrap();
-
-            let row_data = list_item.item().unwrap().downcast::<AppInfo>();
-            if let Err(_) = row_data {
-                let row_data = list_item.item().unwrap().downcast::<MusicObject>().unwrap();
-                crab_row.set_row_data(&row_data);
-            }
-            else {
-                crab_row.set_row_data(&row_data.unwrap());
-            }
-        }));
-
-        self.imp().crab_items_list.set_factory(Some(&factory));
     }
 
     pub fn clean_up(&self) {

@@ -29,4 +29,5 @@ impl CrabRowExt for MusicObject {
 pub struct MusicData {
     pub id: String,
     pub title: String,
+    pub first_id: Option<String>
 }

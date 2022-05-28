@@ -9,6 +9,7 @@ mod music_object;
 mod utils;
 mod window;
 mod daemon;
+mod music_service;
 
 use std::cell::RefCell;
 use gtk::gdk::Display;

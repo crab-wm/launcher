@@ -1,16 +1,15 @@
 use crate::config::ConfigMusicService;
 use crate::crab_tabs::imp::CrabTab;
-use crate::music_object::{MusicData, MusicObject};
-use crate::{
-    Config, Window, API_YOUTUBE_GET_PLAYLISTS_URL, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS,
-};
+use crate::music_object::MusicObject;
+use crate::{Config, Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS};
 use gtk::gio::{AppInfo};
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, CustomFilter, FilterListModel, SingleSelection};
-use serde::Deserialize;
 use std::process::exit;
+use crate::music_service::*;
+use crate::music_service::youtube_service::*;
 
 pub fn open_app(app_info: &AppInfo, window: &Window) {
     let context = gtk::Window::new().display().app_launch_context();
@@ -151,6 +150,10 @@ pub async fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection)
     (filter, selection_model)
 }
 
+pub fn setup_programs_model(window: &Window) -> (CustomFilter, SingleSelection) {
+    get_programs_model(window)
+}
+
 pub async fn setup_list_model_async(
     window: &Window,
     tab: &CrabTab,
@@ -161,56 +164,11 @@ pub async fn setup_list_model_async(
     }
 }
 
-pub fn setup_programs_model(window: &Window) -> (CustomFilter, SingleSelection) {
-    get_programs_model(window)
-}
-
 async fn get_all_user_playlists(user_id: &str, service: ConfigMusicService) -> Vec<MusicObject> {
     match service {
-        ConfigMusicService::Youtube => get_all_user_playlists_youtube(user_id).await,
+        ConfigMusicService::Youtube => {
+            let youtube_service = YoutubeService::new(user_id.to_string());
+            youtube_service.get_all_playlists().await
+        },
     }
-}
-
-async fn get_all_user_playlists_youtube(user_id: &str) -> Vec<MusicObject> {
-    let api_key = dotenv!("YOUTUBE_API_KEY");
-
-    let body: YoutubeApiPlaylistsListResponse = reqwest::get(format!(
-        "{}{}&key={}",
-        API_YOUTUBE_GET_PLAYLISTS_URL, user_id, api_key
-    ))
-    .await
-    .unwrap()
-    .json()
-    .await
-    .unwrap();
-
-    body.items
-        .iter()
-        .map(|item| {
-            let music_object = MusicObject::new();
-
-            music_object.imp().data.replace(MusicData {
-                id: item.id.clone(),
-                title: item.snippet.title.clone(),
-            });
-
-            music_object
-        })
-        .collect()
-}
-
-#[derive(Debug, Deserialize)]
-struct YoutubeApiPlaylistsListResponseItemSnippet {
-    title: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct YoutubeApiPlaylistsListResponseItem {
-    id: String,
-    snippet: YoutubeApiPlaylistsListResponseItemSnippet,
-}
-
-#[derive(Debug, Deserialize)]
-struct YoutubeApiPlaylistsListResponse {
-    items: Vec<YoutubeApiPlaylistsListResponseItem>,
 }

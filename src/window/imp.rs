@@ -85,6 +85,7 @@ impl ObjectImpl for Window {
 
         obj.setup_window();
         obj.setup_factory();
+        obj.setup_keybinds();
 
         obj.set_decorated(false);
         obj.set_title(Some(APP_TITLE));
