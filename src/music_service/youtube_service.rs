@@ -4,6 +4,7 @@ use crate::{API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, API_YOUTUBE_GET_PLAYLISTS_URL};
 use crate::music_object::{MusicData, MusicObject};
 use crate::music_service::MusicServiceExt;
 use async_trait::async_trait;
+use crate::config::ConfigMusicService;
 
 #[derive(Debug, Deserialize)]
 struct YoutubeApiPlaylistsListResponseItemSnippet {
@@ -83,6 +84,7 @@ impl MusicServiceExt for YoutubeService {
                 id: item.id.clone(),
                 title: item.snippet.title.clone(),
                 first_id: first_item.clone(),
+                service: ConfigMusicService::Youtube
             });
 
             playlists.push(music_object);

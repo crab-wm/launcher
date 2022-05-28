@@ -75,10 +75,22 @@ impl Window {
 
         self.imp().entry.connect_activate(
             clone!(@weak self as window => move |_| {
-                open_app(
-                    &window.current_selection_model().selected_item().unwrap().downcast::<AppInfo>().unwrap(),
-                    &window
-                );
+                let row_data = &window.current_selection_model().selected_item().unwrap().downcast::<AppInfo>();
+
+                if let Ok(row_data) = row_data {
+                    open_app(&row_data, &window);
+                }
+                else {
+                    let row_data = &window.current_selection_model().selected_item().unwrap().downcast::<MusicObject>().unwrap();
+
+                    if row_data.get_url().is_none() {
+                        return;
+                    }
+
+                    Command::new("xdg-open").arg(row_data.get_url().unwrap()).spawn().unwrap();
+
+                    window.hide_or_close();
+                }
             }),
         );
     }
@@ -140,10 +152,13 @@ impl Window {
                         open_app(&row_data, &window);
                     }
                     else {
-                        let _row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();
+                        let row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();
 
-                        let url = format!("{}", "https://google.com/");
-                        Command::new("xdg-open").arg(url).spawn().unwrap();
+                        if row_data.get_url().is_none() {
+                            return Inhibit(false);
+                        }
+
+                        Command::new("xdg-open").arg(row_data.get_url().unwrap()).spawn().unwrap();
 
                         window.hide_or_close();
                     }
