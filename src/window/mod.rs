@@ -20,8 +20,8 @@ glib::wrapper! {
 }
 
 impl Window {
-    pub fn new(app: &Application) -> Self {
-        Object::new(&[("application", app)]).expect("Failed to create `Window`.")
+    pub fn new(app: &Application, _is_daemon: bool) -> Self {
+        Object::new(&[("application", app), /*("is-daemon", &is_daemon.to_value())*/]).expect("Failed to create `Window`.")
     }
 
     pub fn current_filter(&self) -> CustomFilter {

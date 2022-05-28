@@ -33,61 +33,26 @@ async fn main() {
     let mut args = std::env::args();
     let arg = args.nth(1);
 
-    let s = System::new_all();
-    let is_running = s.processes_by_exact_name(APP_TITLE).count() > 1;
-
-    if is_running {
-        emit_show_window();
-    }
-
     if let Some(arg) = arg {
         match arg.as_str() {
-            "--generate-config" => {
-                let mut file = File::create(format!(
-                    "{}{}",
-                    dirs::config_dir().unwrap().as_os_str().to_str().unwrap(),
-                    CONFIG_DEFAULT_PATH
-                ))
-                .unwrap();
-
-                file.write_all(CONFIG_DEFAULT_STRING.as_bytes()).unwrap();
-
-                println!("{}", CONFIG_GENERATED);
-                exit(0);
-            }
-            "--show" => {
-                gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
-
-                let app = Application::builder().application_id(APP_ID).build();
-
-                app.connect_startup(|_| load_css());
-                app.connect_activate(|app| build_ui(app, true, None));
-
-                app.run_with_args::<&str>(&[]);
-            },
-            a => display_err(format!("Uknown parameter: {}", a).as_str()),
+            "--generate-config" => generate_config(),
+            "--show" => emit_show_window(),
+            "--run" => run_standalone(),
+            param => display_err(format!("Uknown parameter: {}", param).as_str()),
         }
 
         return;
     }
 
-    gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
+    let s = System::new_all();
+    let is_running = s.processes_by_exact_name(APP_TITLE).count() > 1;
 
-    let crab_daemon = CrabDaemonServer::new();
-    let (tx, rx) = MainContext::channel::<bool>(PRIORITY_DEFAULT);
-    let rx = Rc::new(RefCell::new(Some(rx)));
+    if is_running {
+        emit_show_window();
+        exit(1);
+    }
 
-    let app = Application::builder().application_id(APP_ID).build();
-
-    app.connect_startup(|_| load_css());
-    app.connect_activate(move |app| build_ui(app, false, Some(rx.clone())));
-
-    let owner_id = crab_daemon.start(tx);
-
-    app.run();
-
-    MainLoop::new(None, false).run();
-    gio::bus_unown_name(owner_id);
+    run_daemon();
 }
 
 fn load_css() {
@@ -103,7 +68,7 @@ fn load_css() {
 }
 
 fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<Receiver<bool>>>>>) {
-    let window = Window::new(app);
+    let window = Window::new(app, rx.is_some());
 
     if let Some(rx) = rx {
         if let Some(rx) = rx.take() {
@@ -128,4 +93,49 @@ fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<R
 fn emit_show_window() {
     let crab_daemon = CrabDaemonClient::new();
     crab_daemon.run_method("ShowWindow");
+}
+
+fn generate_config() {
+    let mut file = File::create(format!(
+        "{}{}",
+        dirs::config_dir().unwrap().as_os_str().to_str().unwrap(),
+        CONFIG_DEFAULT_PATH
+    ))
+        .unwrap();
+
+    file.write_all(CONFIG_DEFAULT_STRING.as_bytes()).unwrap();
+
+    println!("{}", CONFIG_GENERATED);
+    exit(0);
+}
+
+fn run_daemon() {
+    gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
+
+    let crab_daemon = CrabDaemonServer::new();
+    let (tx, rx) = MainContext::channel::<bool>(PRIORITY_DEFAULT);
+    let rx = Rc::new(RefCell::new(Some(rx)));
+
+    let app = Application::builder().application_id(APP_ID).build();
+
+    app.connect_startup(|_| load_css());
+    app.connect_activate(move |app| build_ui(app, false, Some(rx.clone())));
+
+    let owner_id = crab_daemon.start(tx);
+
+    app.run();
+
+    MainLoop::new(None, false).run();
+    gio::bus_unown_name(owner_id);
+}
+
+fn run_standalone() {
+    gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
+
+    let app = Application::builder().application_id(APP_ID).build();
+
+    app.connect_startup(|_| load_css());
+    app.connect_activate(|app| build_ui(app, true, None));
+
+    app.run_with_args::<&str>(&[]);
 }
