@@ -5,7 +5,11 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, glib, CustomFilter, ScrolledWindow, SingleSelection};
 use gtk::{CompositeTemplate, Entry, ListView};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
+use gtk::glib::{ParamFlags, ParamSpecBoolean};
+use once_cell::sync::Lazy;
+use crate::gio::glib::{ParamSpec, Value};
+use crate::gio::glib::subclass::Signal;
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
@@ -21,6 +25,7 @@ pub struct Window {
     pub current_items: RefCell<Option<gio::ListStore>>,
     pub current_filter: RefCell<CustomFilter>,
     pub current_selection_model: RefCell<SingleSelection>,
+    pub is_daemon: Cell<bool>
 }
 
 #[glib::object_subclass]
@@ -39,6 +44,43 @@ impl ObjectSubclass for Window {
 }
 
 impl ObjectImpl for Window {
+    fn properties() -> &'static [ParamSpec] {
+        static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
+            vec![ParamSpecBoolean::new(
+                "is-daemon",
+                "is-daemon",
+                "is-daemon",
+                false,
+                ParamFlags::READWRITE,
+            )]
+        });
+        PROPERTIES.as_ref()
+    }
+
+    fn set_property(
+        &self,
+        _obj: &Self::Type,
+        _id: usize,
+        value: &Value,
+        pspec: &ParamSpec,
+    ) {
+        match pspec.name() {
+            "is-daemon" => {
+                let input_value =
+                    value.get().expect("The value needs to be of type `bool`.");
+                self.is_daemon.replace(input_value);
+            }
+            _ => unimplemented!(),
+        }
+    }
+
+    fn property(&self, _obj: &Self::Type, _id: usize, pspec: &ParamSpec) -> Value {
+        match pspec.name() {
+            "is-daemon" => self.is_daemon.get().to_value(),
+            _ => unimplemented!(),
+        }
+    }
+
     fn constructed(&self, obj: &Self::Type) {
         self.parent_constructed(obj);
 

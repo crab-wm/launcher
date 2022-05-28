@@ -20,8 +20,8 @@ glib::wrapper! {
 }
 
 impl Window {
-    pub fn new(app: &Application, _is_daemon: bool) -> Self {
-        Object::new(&[("application", app), /*("is-daemon", &is_daemon.to_value())*/]).expect("Failed to create `Window`.")
+    pub fn new(app: &Application, is_daemon: bool) -> Self {
+        Object::new(&[("application", app), ("is-daemon", &is_daemon.to_value())]).expect("Failed to create `Window`.")
     }
 
     pub fn current_filter(&self) -> CustomFilter {
@@ -77,6 +77,7 @@ impl Window {
                 open_app(
                     &window.current_selection_model().selected_item().unwrap().downcast::<AppInfo>().unwrap(),
                     &window,
+                    window.property("is-daemon")
                 );
             }),
         );
@@ -101,7 +102,12 @@ impl Window {
                     Inhibit(false)
                 }
                 KEY_ESC => {
-                    window.close();
+                    if window.property("is-daemon") {
+                        window.hide();
+                    }
+                    else {
+                        window.close();
+                    }
 
                     Inhibit(true)
                 }
@@ -109,7 +115,7 @@ impl Window {
                     let row_data = &selection_model.selected_item().unwrap().downcast::<AppInfo>();
 
                     if let Ok(row_data) = row_data {
-                        open_app(&row_data, &window);
+                        open_app(&row_data, &window, window.property("is-daemon"));
                     }
                     else {
                         let _row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();

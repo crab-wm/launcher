@@ -38,10 +38,11 @@ async fn main() {
             "--generate-config" => generate_config(),
             "--show" => emit_show_window(),
             "--run" => run_standalone(),
+            "--daemon" => run_daemon(),
             param => display_err(format!("Uknown parameter: {}", param).as_str()),
         }
 
-        return;
+        exit(0);
     }
 
     let s = System::new_all();
@@ -123,7 +124,7 @@ fn run_daemon() {
 
     let owner_id = crab_daemon.start(tx);
 
-    app.run();
+    app.run_with_args::<&str>(&[]);
 
     MainLoop::new(None, false).run();
     gio::bus_unown_name(owner_id);
