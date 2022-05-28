@@ -52,6 +52,16 @@ pub const API_YOUTUBE_GET_PLAYLIST_ITEMS_URL: &str =
 
 pub const MUSIC_YOUTUBE_URL: &str = "https://www.youtube.com/watch?v={VIDEO_ID}&list={LIST_ID}&index=1";
 
+#[cfg(debug_assertions)]
+pub const DBUS_SESSION_NAME: &str = "wm.crab.GDBus.LauncherServerDebug";
+#[cfg(debug_assertions)]
+pub const DBUS_OBJECT_PATH: &str = "/wm/crab/GDBus/LauncherObjectDebug";
+#[cfg(debug_assertions)]
+pub const DBUS_INTERFACE_NAME: &str = "wm.crab.GDBus.LauncherInterfaceDebug";
+
+#[cfg(not(debug_assertions))]
 pub const DBUS_SESSION_NAME: &str = "wm.crab.GDBus.LauncherServer";
+#[cfg(not(debug_assertions))]
 pub const DBUS_OBJECT_PATH: &str = "/wm/crab/GDBus/LauncherObject";
+#[cfg(not(debug_assertions))]
 pub const DBUS_INTERFACE_NAME: &str = "wm.crab.GDBus.LauncherInterface";

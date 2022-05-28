@@ -6,13 +6,6 @@ use gtk::glib::{MainLoop, Variant, VariantTy};
 use crate::consts::*;
 use crate::gio::glib::Sender;
 
-const INTROSPECTION_XML: &str = "\
-<node>\
-  <interface name='wm.crab.GDBus.LauncherInterface'>\
-    <method name='ShowWindow'/>\
-  </interface>\
-</node>";
-
 #[derive(Copy, Clone)]
 pub enum CrabDaemonMethod {
     ShowWindow
@@ -76,7 +69,14 @@ impl CrabDaemonServer {
     }
 
     fn on_bus_acquired(connection: DBusConnection, _name: &str, tx: Sender<bool>) {
-        let introspection_data = DBusNodeInfo::for_xml(INTROSPECTION_XML).unwrap();
+        let introspection_xml = format!("\
+            <node>\
+              <interface name='{}'>\
+                <method name='ShowWindow'/>\
+              </interface>\
+            </node>", DBUS_INTERFACE_NAME);
+
+        let introspection_data = DBusNodeInfo::for_xml(&introspection_xml).unwrap();
 
         let _registration_id = connection.register_object(
             DBUS_OBJECT_PATH,

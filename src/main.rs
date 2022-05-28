@@ -136,7 +136,14 @@ async fn run_daemon() {
     fetch_playlists().await;
 
     let s = System::new_all();
-    let is_running = s.processes_by_exact_name(APP_TITLE).count() > 1;
+
+    #[cfg(not(debug_assertions))]
+    let max_processes = 1;
+
+    #[cfg(debug_assertions)]
+    let max_processes = 2;
+
+    let is_running = s.processes_by_exact_name(APP_TITLE).count() > max_processes;
 
     if is_running {
         display_err(ERROR_DAEMON);
