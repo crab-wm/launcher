@@ -3,6 +3,8 @@ pub const APP_TITLE: &str = "crab-launcher";
 
 pub const CONFIG_USER_PATH: &str = "/crab/launcher.yaml";
 pub const CONFIG_DEFAULT_PATH: &str = "/crab/launcher_def.yaml";
+pub const CONFIG_USER_DIR: &str = "/crab";
+pub const CONFIG_DEFAULT_DIR: &str = "/crab";
 pub const CONFIG_GENERATED: &str = "Config generated successfully! You can find it in `~/.config/crab/launcher_def.yaml`. Copy the file to `~/.config/crab/launcher.yaml` and edit it as you want!";
 pub const CONFIG_DEFAULT_STRING: &str = "\
 colors:

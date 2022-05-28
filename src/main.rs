@@ -12,6 +12,7 @@ mod daemon;
 mod music_service;
 
 use std::cell::RefCell;
+use std::fs;
 use gtk::gdk::Display;
 use gtk::prelude::*;
 use gtk::Application;
@@ -86,9 +87,24 @@ fn emit_show_window() {
 }
 
 fn generate_config() {
+    let config_dir = dirs::config_dir().unwrap();
+    let config_dir = config_dir.as_os_str().to_str().unwrap();
+
+    fs::create_dir_all(format!(
+        "{}{}",
+        config_dir,
+        CONFIG_USER_DIR
+    )).unwrap();
+
+    fs::create_dir_all(format!(
+        "{}{}",
+        config_dir,
+        CONFIG_DEFAULT_DIR
+    )).unwrap();
+
     let mut file = File::create(format!(
         "{}{}",
-        dirs::config_dir().unwrap().as_os_str().to_str().unwrap(),
+        config_dir,
         CONFIG_DEFAULT_PATH
     ))
         .unwrap();
