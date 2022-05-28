@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate dotenv_codegen;
-
 mod config;
 mod consts;
 mod crab_row;
@@ -23,8 +20,10 @@ use std::fs::File;
 use std::io::Write;
 use std::process::exit;
 use std::rc::Rc;
+use std::sync::Mutex;
 use gtk::glib::{clone, MainContext, MainLoop, PRIORITY_DEFAULT, Receiver};
 use gtk::subclass::prelude::ObjectSubclassIsExt;
+use once_cell::sync::Lazy;
 use sysinfo::{System, SystemExt};
 
 use crate::config::Config;
@@ -35,6 +34,8 @@ use window::Window;
 use crate::music_object::MusicData;
 use crate::music_service::MusicServiceExt;
 use crate::music_service::youtube_service::YoutubeService;
+
+pub static CONFIG: Lazy<Mutex<Config>> = Lazy::new(|| Mutex::new(Config::new()));
 
 #[tokio::main]
 async fn main() {
@@ -60,7 +61,7 @@ async fn main() {
 fn load_css() {
     let provider = CssProvider::new();
 
-    Config::new().apply(&provider);
+    CONFIG.lock().unwrap().apply(&provider);
 
     StyleContext::add_provider_for_display(
         &Display::default().expect(ERROR_DISPLAY),
@@ -71,6 +72,10 @@ fn load_css() {
 
 fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<Receiver<bool>>>>>) {
     let window = Window::new(app, rx.is_some());
+
+    if rx.is_some() {
+        println!("Daemon started! Run with `--show` to show a window!");
+    }
 
     if let Some(rx) = rx {
         if let Some(rx) = rx.take() {
@@ -123,6 +128,8 @@ fn generate_config() {
 }
 
 async fn run_daemon() {
+    println!("Starting daemon...");
+
     fetch_playlists().await;
 
     let s = System::new_all();
@@ -163,7 +170,7 @@ fn run_standalone() {
 }
 
 async fn fetch_playlists() {
-    let config = Config::new();
+    let config = CONFIG.lock().unwrap();
 
     if config.music.is_none() {
         display_err(ERROR_MUSIC_CONFIG);
@@ -178,12 +185,13 @@ async fn fetch_playlists() {
         DATA_DIR
     )).unwrap();
 
-    let youtube_service = YoutubeService::new(config.music.unwrap().account_id);
+
+    let youtube_service = YoutubeService::new(config.music.as_ref().unwrap().account_id.clone(), config.music.as_ref().unwrap().api_key.clone());
     let playlists = youtube_service.get_all_playlists().await;
     let playlists = json!(playlists.iter().map(|music_object| music_object.imp().data.take()).collect::<Vec<MusicData>>());
 
     serde_json::to_writer(
-        &File::create(format!("{}{}", data_dir, get_temp_music_file_path().unwrap())).unwrap(),
+        &File::create(format!("{}{}", data_dir, get_temp_music_file_path(config.music.as_ref()).unwrap())).unwrap(),
         &playlists
     ).unwrap();
 }

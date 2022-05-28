@@ -1,6 +1,6 @@
 use std::fs;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
-use crate::MusicData;
+use crate::{CONFIG, MusicData};
 use crate::music_object::MusicObject;
 use crate::utils::get_temp_music_file_path;
 
@@ -10,10 +10,12 @@ pub struct TempData {
 
 impl TempData {
     pub fn new() -> Self {
+        let config = CONFIG.lock().unwrap();
+
         let data_dir = dirs::data_dir().unwrap();
         let data_dir = data_dir.as_os_str().to_str().unwrap();
 
-        let temp_data_file_path = get_temp_music_file_path();
+        let temp_data_file_path = get_temp_music_file_path(config.music.as_ref());
 
         if temp_data_file_path.is_none() {
             return Self {

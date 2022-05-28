@@ -20,6 +20,7 @@ impl Default for ConfigMusicService {
 pub struct ConfigMusic {
     pub account_id: String,
     pub service: ConfigMusicService,
+    pub api_key: String,
 }
 
 #[derive(Deserialize, Debug, Default)]

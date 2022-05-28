@@ -1,6 +1,6 @@
 use gtk::subclass::prelude::ObjectSubclassIsExt;
 use serde::Deserialize;
-use crate::{API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, API_YOUTUBE_GET_PLAYLISTS_URL};
+use crate::{API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, API_YOUTUBE_GET_PLAYLISTS_URL, CONFIG};
 use crate::music_object::{MusicData, MusicObject};
 use crate::music_service::MusicServiceExt;
 use async_trait::async_trait;
@@ -46,12 +46,14 @@ struct YoutubeApiPlaylistItemsListResponse {
 
 pub struct YoutubeService {
     account_id: String,
+    api_key: String,
 }
 
 impl YoutubeService {
-    pub fn new(account_id: String) -> Self {
+    pub fn new(account_id: String, api_key: String) -> Self {
         Self {
-            account_id
+            account_id,
+            api_key
         }
     }
 }
@@ -59,11 +61,9 @@ impl YoutubeService {
 #[async_trait(?Send)]
 impl MusicServiceExt for YoutubeService {
     async fn get_all_playlists(&self) -> Vec<MusicObject> {
-        let api_key = dotenv!("YOUTUBE_API_KEY");
-
         let body: YoutubeApiPlaylistsListResponse = reqwest::get(format!(
             "{}{}&key={}",
-            API_YOUTUBE_GET_PLAYLISTS_URL, self.account_id, api_key
+            API_YOUTUBE_GET_PLAYLISTS_URL, self.account_id, self.api_key
         )).await.unwrap().json().await.unwrap();
 
         let mut playlists: Vec<MusicObject> = vec![];
@@ -71,7 +71,7 @@ impl MusicServiceExt for YoutubeService {
         for item in body.items.iter() {
             let body: YoutubeApiPlaylistItemsListResponse = reqwest::get(format!(
                 "{}{}&key={}",
-                API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, item.id.clone(), api_key
+                API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, item.id.clone(), self.api_key
             )).await.unwrap().json().await.unwrap();
 
             let music_object = MusicObject::new();

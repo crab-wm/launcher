@@ -5,7 +5,7 @@ use crate::crab_row::CrabRow;
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;
 use gtk::gio::AppInfo;
-use gtk::glib::{clone, MainContext, Object};
+use gtk::glib::{clone, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, CustomFilter, Inhibit, SignalListItemFactory, SingleSelection};

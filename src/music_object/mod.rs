@@ -44,7 +44,7 @@ impl CrabRowExt for MusicObject {
     }
 }
 
-#[derive(Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Clone, Debug)]
 pub struct MusicData {
     pub id: String,
     pub title: String,

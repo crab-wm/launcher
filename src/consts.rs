@@ -23,6 +23,7 @@ opacity: 1.0
 music:
   account_id: \"\"
   service: \"youtube\"
+  api_key: \"\"
 ";
 
 pub const ERROR_MUSIC_CONFIG: &str = "You have to configure music service in the config file.";

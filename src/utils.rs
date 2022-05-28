@@ -1,7 +1,9 @@
-use crate::config::ConfigMusicService;
+use std::borrow::Borrow;
+use std::cell::RefCell;
+use crate::config::{ConfigMusic, ConfigMusicService};
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;
-use crate::{Config, Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE};
+use crate::{Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE, CONFIG, MusicData, Config};
 use gtk::gio::{AppInfo};
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
@@ -113,11 +115,12 @@ pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
 
     let filter = CustomFilter::new(clone!(@strong window => move |obj| {
         let music_object = obj.downcast_ref::<MusicObject>().unwrap();
-        let music_object_data = music_object.imp().data.borrow();
+        let music_object_data: &RefCell<MusicData> = music_object.imp().data.borrow();
         let search = window.imp().entry.buffer().text();
 
         if !search.is_empty() {
             music_object_data
+                .borrow()
                 .title
                 .to_lowercase()
                 .contains(&search.as_str().to_lowercase())
@@ -129,16 +132,14 @@ pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
     let filter_model = FilterListModel::new(Some(&window.current_items()), Some(&filter));
 
     let sorter = gtk::CustomSorter::new(move |obj1, obj2| {
-        let music_object1 = obj1.downcast_ref::<MusicObject>().unwrap();
-        let music_object2 = obj2.downcast_ref::<MusicObject>().unwrap();
+        let music_object1: &RefCell<MusicData> = obj1.downcast_ref::<MusicObject>().unwrap().imp().data.borrow();
+        let music_object2: &RefCell<MusicData> = obj2.downcast_ref::<MusicObject>().unwrap().imp().data.borrow();
 
         music_object1
-            .imp()
-            .data
             .borrow()
             .title
             .to_lowercase()
-            .cmp(&music_object2.imp().data.borrow().title.to_lowercase())
+            .cmp(&music_object2.borrow().title.to_lowercase())
             .into()
     });
 
@@ -162,15 +163,12 @@ pub fn setup_list_model(
     }
 }
 
-pub fn get_temp_music_file_path() -> Option<String> {
-    let config = Config::new();
-    let config = config.music;
-
+pub fn get_temp_music_file_path(config: Option<&ConfigMusic>) -> Option<String> {
     if config.is_none() {
         return None;
     }
 
-    match config.unwrap().service {
+    match config.as_ref().unwrap().service {
         ConfigMusicService::Youtube => Some(DATA_MUSIC_YOUTUBE_TEMP_FILE.to_string())
     }
 }
