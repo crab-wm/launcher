@@ -1,10 +1,11 @@
-use crate::config::ConfigMusicService;
-use crate::music_object::{MusicData, MusicObject};
-use crate::music_service::MusicServiceExt;
-use crate::{API_YOUTUBE_GET_PLAYLISTS_URL, API_YOUTUBE_GET_PLAYLIST_ITEMS_URL};
 use async_trait::async_trait;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
 use serde::Deserialize;
+
+use crate::config::ConfigMusicService;
+use crate::consts::*;
+use crate::music_object::{MusicData, MusicObject};
+use crate::music_service::MusicServiceExt;
 
 #[derive(Debug, Deserialize)]
 struct YoutubeApiPlaylistsListResponseItemSnippet {
