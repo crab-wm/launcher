@@ -56,13 +56,18 @@ async fn main() {
             "--show" => emit_show_window(),
             "--run" => run_standalone(),
             "--daemon" => run_daemon().await,
-            param => display_err(format!("Uknown parameter: {}", param).as_str()),
+            "--help" => show_help(),
+            param => {
+                show_help();
+                println!();
+                display_err(format!("Uknown parameter: {}", param).as_str());
+            },
         }
 
         exit(0);
     }
 
-    run_daemon().await;
+    show_help();
 }
 
 fn load_css() {
@@ -195,4 +200,23 @@ async fn fetch_playlists() {
         &File::create(format!("{}{}", data_dir, get_temp_music_file_path(config.music.as_ref()).unwrap())).unwrap(),
         &playlists
     ).unwrap();
+}
+
+fn show_help() {
+    let usage_commands_list = vec![
+        ("--generate-config    ", "Generates configuration file and saves it in the default app directory. After finishing its work, it outputs the file location."),
+        ("--fetch              ", "Generates temporary file containing all user's playlists for the selected service in config file. Make sure you fill in all the fields in config's music section."),
+        ("--show               ", "Shows the launcher window. Will work only if daemon service is running in the background."),
+        ("--run                ", "Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched automatically (if config set up). To fetch them, use --fetch option before."),
+        ("--daemon             ", "Runs the daemon service. App launched in background automatically fetched playlists (if config set up). To show the window, use --show option."),
+        ("--help               ", "Shows help."),
+    ];
+
+    println!("USAGE: crab-launcher <OPTION>");
+    println!();
+    println!("Available command:");
+
+    for (option, description) in usage_commands_list {
+        println!("{} {}", option, description);
+    }
 }
