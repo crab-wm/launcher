@@ -21,6 +21,17 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
   clippy_check:
+      permissions:
+        actions: write
+        checks: write
+        contents: write
+        deployments: write
+        issues: write
+        packages: write
+        pull-requests: write
+        repository-projects: write
+        security-events: write
+        statuses: write
       runs-on: ubuntu-22.04
       steps:
         - uses: actions/checkout@v1
