@@ -45,7 +45,7 @@ impl Window {
         self.imp().crab_items_list.set_can_focus(false);
         self.imp().tabs.set_can_focus(false);
 
-        let (filter, selection_model) = setup_programs_model(&self);
+        let (filter, selection_model) = setup_programs_model(self);
 
         self.imp().crab_items_list.set_model(Some(&selection_model));
         self.imp().current_filter.replace(filter);
@@ -72,7 +72,7 @@ impl Window {
         self.imp().entry.connect_activate(
             clone!(@weak self as window => move |_| {
                 let row_data = &window.current_selection_model().selected_item();
-                if let None = row_data { return; }
+                if row_data.is_none() { return; }
                 let row_data = row_data.as_ref().unwrap().clone().downcast::<AppInfo>();
 
                 if let Ok(row_data) = row_data {
@@ -105,7 +105,7 @@ impl Window {
             let crab_row = list_item.child().unwrap().downcast::<CrabRow>().unwrap();
 
             let row_data = list_item.item().unwrap().downcast::<AppInfo>();
-            if let Err(_) = row_data {
+            if row_data.is_err() {
                 let row_data = list_item.item().unwrap().downcast::<MusicObject>().unwrap();
                 crab_row.set_row_data(&row_data);
             }
@@ -145,7 +145,7 @@ impl Window {
                 }
                 KEY_ENTER => {
                     let row_data = &window.current_selection_model().selected_item();
-                    if let None = row_data { return Inhibit(false); }
+                    if row_data.is_none() { return Inhibit(false); }
                     let row_data = row_data.as_ref().unwrap().clone().downcast::<AppInfo>();
 
                     if let Ok(row_data) = row_data {

@@ -20,7 +20,7 @@ pub fn open_app(app_info: &AppInfo, window: &Window) {
     let main_context = MainContext::default();
 
     main_context.spawn_local(clone!(@strong commandline, @strong window, @strong app_info, @strong context => async move {
-        if let Err(_) = async_process::Command::new(commandline.as_os_str()).output().await {
+        if async_process::Command::new(commandline.as_os_str()).output().await.is_err() {
             if let Err(err) = app_info.launch(&[], Some(&context)) {
                 gtk::MessageDialog::builder()
                     .text(&format!("Failed to start {}!", app_info.name()))
@@ -168,9 +168,7 @@ pub fn setup_list_model(
 }
 
 pub fn get_temp_music_file_path(config: Option<&ConfigMusic>) -> Option<String> {
-    if config.is_none() {
-        return None;
-    }
+    config?;
 
     match config.as_ref().unwrap().service {
         ConfigMusicService::Youtube => Some(DATA_MUSIC_YOUTUBE_TEMP_FILE.to_string())

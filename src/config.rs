@@ -51,10 +51,10 @@ impl Config {
 
         let mut config_file = fs::File::open(&user_config_path);
 
-        if let Err(_) = config_file {
+        if config_file.is_err() {
             config_file = fs::File::open(&default_config_path);
 
-            if let Err(_) = config_file {
+            if config_file.is_err() {
                 display_err(ERROR_MISSING_CONFIG);
             }
 
@@ -63,17 +63,17 @@ impl Config {
 
         let config = serde_yaml::from_reader::<_, Config>(config_file.unwrap());
 
-        if let Err(_) = &config {
+        if config.is_err() {
             if !using_default_config {
                 let config_file = fs::File::open(&default_config_path);
 
-                if let Err(_) = config_file {
+                if config_file.is_err() {
                     display_err(ERROR_MISSING_CONFIG);
                 }
 
                 let config = serde_yaml::from_reader::<_, Config>(config_file.unwrap());
 
-                if let Err(_) = config {
+                if config.is_err() {
                     display_err(ERROR_BAD_CONFIG);
                 }
             }
@@ -87,7 +87,7 @@ impl Config {
     pub fn apply(&self, provider: &CssProvider) {
         let mut opacity = self.opacity.unwrap_or(1.);
 
-        opacity = if opacity < 0. || opacity > 1. {
+        opacity = if !(0. ..=1.).contains(&opacity) {
             1.
         } else {
             opacity

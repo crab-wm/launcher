@@ -10,6 +10,12 @@ pub struct History {
     pub stack: HashMap<String, u64>
 }
 
+impl Default for History {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl History {
     pub fn new() -> Self {
         let data_dir = dirs::data_local_dir().unwrap();

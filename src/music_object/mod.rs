@@ -14,6 +14,12 @@ glib::wrapper! {
     pub struct MusicObject(ObjectSubclass<imp::MusicObject>);
 }
 
+impl Default for MusicObject {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MusicObject {
     pub fn new() -> Self {
         Object::new(&[]).expect("Failed to create `MusicObject`.")
@@ -22,9 +28,7 @@ impl MusicObject {
     pub fn get_url(&self) -> Option<String> {
         let music_data: &RefCell<MusicData> = self.imp().data.borrow();
 
-        if music_data.borrow().first_id.is_none() {
-            return None;
-        }
+        music_data.borrow().first_id.as_ref()?;
 
         match music_data.borrow().service {
             ConfigMusicService::Youtube => Some(

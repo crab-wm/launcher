@@ -38,16 +38,14 @@ impl CrabDaemonServer {
     }
 
     pub fn start(&self, tx: Sender<bool>) -> OwnerId {
-        let own_name = gio::bus_own_name(
+        gio::bus_own_name(
             BusType::Session,
             DBUS_SESSION_NAME,
             BusNameOwnerFlags::NONE,
             move |conn, name| Self::on_bus_acquired(conn, name, tx.clone()),
             Self::on_name_acquired,
             Self::on_name_lost,
-        );
-
-        own_name
+        )
     }
 
     fn handle_method_call(_connection: DBusConnection, _sender: &str, _object_path: &str, _interface_name: &str, method_name: &str, _parameters: Variant, _invocation: DBusMethodInvocation, tx: Sender<bool>) {

@@ -6,6 +6,12 @@ pub struct TempData {
     pub playlists: Vec<MusicData>
 }
 
+impl Default for TempData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TempData {
     pub fn new() -> Self {
         let config = CONFIG.lock().unwrap();

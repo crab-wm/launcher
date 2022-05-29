@@ -76,9 +76,9 @@ impl MusicServiceExt for YoutubeService {
 
             let music_object = MusicObject::new();
 
-            let first_item = if let Some(item) = body.items.get(0) {
-                Some(item.snippet.resource_id.video_id.clone())
-            } else { None };
+            let first_item = body.items.get(0).map(|item|
+                item.snippet.resource_id.video_id.clone()
+            );
 
             music_object.imp().data.replace(MusicData {
                 id: item.id.clone(),
