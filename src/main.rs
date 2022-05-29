@@ -2,41 +2,41 @@ mod config;
 mod consts;
 mod crab_row;
 mod crab_tabs;
-mod music_object;
-mod utils;
-mod window;
 mod daemon;
+mod history;
+mod music_object;
 mod music_service;
 mod temp_data;
-mod history;
+mod utils;
+mod window;
 
+use gtk::gdk::Display;
+use gtk::glib::{clone, MainContext, MainLoop, Receiver, PRIORITY_DEFAULT};
+use gtk::prelude::*;
+use gtk::subclass::prelude::ObjectSubclassIsExt;
+use gtk::Application;
+use gtk::{gio, CssProvider, StyleContext};
+use once_cell::sync::Lazy;
 use serde_json::json;
 use std::cell::RefCell;
 use std::fs;
-use gtk::gdk::Display;
-use gtk::prelude::*;
-use gtk::Application;
-use gtk::{gio, CssProvider, StyleContext};
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
 use std::rc::Rc;
 use std::sync::Mutex;
-use gtk::glib::{clone, MainContext, MainLoop, PRIORITY_DEFAULT, Receiver};
-use gtk::subclass::prelude::ObjectSubclassIsExt;
-use once_cell::sync::Lazy;
 use sysinfo::{System, SystemExt};
 
 use crate::config::Config;
-use crate::utils::{display_err, get_temp_music_file_path};
 use crate::daemon::{CrabDaemonClient, CrabDaemonMethod, CrabDaemonServer};
-use consts::*;
-use window::Window;
 use crate::history::History;
 use crate::music_object::MusicData;
-use crate::music_service::MusicServiceExt;
 use crate::music_service::youtube_service::YoutubeService;
+use crate::music_service::MusicServiceExt;
 use crate::temp_data::TempData;
+use crate::utils::{display_err, get_temp_music_file_path};
+use consts::*;
+use window::Window;
 
 pub static HISTORY: Lazy<Mutex<History>> = Lazy::new(|| Mutex::new(History::new()));
 
@@ -61,7 +61,7 @@ async fn main() {
                 show_help();
                 println!();
                 display_err(format!("Uknown parameter: {}", param).as_str());
-            },
+            }
         }
 
         exit(0);
@@ -91,12 +91,15 @@ fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<R
 
     if let Some(rx) = rx {
         if let Some(rx) = rx.take() {
-            rx.attach(None, clone!(@strong window => move |_| {
-                window.present();
-                window.clean_up();
+            rx.attach(
+                None,
+                clone!(@strong window => move |_| {
+                    window.present();
+                    window.clean_up();
 
-                Continue(true)
-            }));
+                    Continue(true)
+                }),
+            );
         }
     }
 
@@ -118,12 +121,7 @@ fn generate_config() {
 
     fs::create_dir_all(format!("{}{}", config_dir, CONFIG_DEFAULT_DIR)).unwrap();
 
-    let mut file = File::create(format!(
-        "{}{}",
-        config_dir,
-        CONFIG_DEFAULT_PATH
-    ))
-        .unwrap();
+    let mut file = File::create(format!("{}{}", config_dir, CONFIG_DEFAULT_PATH)).unwrap();
 
     file.write_all(CONFIG_DEFAULT_STRING.as_bytes()).unwrap();
 
@@ -192,14 +190,31 @@ async fn fetch_playlists() {
 
     fs::create_dir_all(format!("{}{}", data_dir, DATA_DIR)).unwrap();
 
-    let youtube_service = YoutubeService::new(config.music.as_ref().unwrap().account_id.clone(), config.music.as_ref().unwrap().api_key.clone());
+    let youtube_service = YoutubeService::new(
+        config.music.as_ref().unwrap().account_id.clone(),
+        config.music.as_ref().unwrap().api_key.clone(),
+    );
+
+    drop(config);
+
     let playlists = youtube_service.get_all_playlists().await;
-    let playlists = json!(playlists.iter().map(|music_object| music_object.imp().data.take()).collect::<Vec<MusicData>>());
+    let playlists = json!(playlists
+        .iter()
+        .map(|music_object| music_object.imp().data.take())
+        .collect::<Vec<MusicData>>());
+
+    let config = CONFIG.lock().unwrap();
 
     serde_json::to_writer(
-        &File::create(format!("{}{}", data_dir, get_temp_music_file_path(config.music.as_ref()).unwrap())).unwrap(),
-        &playlists
-    ).unwrap();
+        &File::create(format!(
+            "{}{}",
+            data_dir,
+            get_temp_music_file_path(config.music.as_ref()).unwrap()
+        ))
+        .unwrap(),
+        &playlists,
+    )
+    .unwrap();
 }
 
 fn show_help() {

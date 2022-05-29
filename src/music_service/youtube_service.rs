@@ -1,10 +1,10 @@
-use gtk::subclass::prelude::ObjectSubclassIsExt;
-use serde::Deserialize;
-use crate::{API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, API_YOUTUBE_GET_PLAYLISTS_URL};
+use crate::config::ConfigMusicService;
 use crate::music_object::{MusicData, MusicObject};
 use crate::music_service::MusicServiceExt;
+use crate::{API_YOUTUBE_GET_PLAYLISTS_URL, API_YOUTUBE_GET_PLAYLIST_ITEMS_URL};
 use async_trait::async_trait;
-use crate::config::ConfigMusicService;
+use gtk::subclass::prelude::ObjectSubclassIsExt;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 struct YoutubeApiPlaylistsListResponseItemSnippet {
@@ -53,7 +53,7 @@ impl YoutubeService {
     pub fn new(account_id: String, api_key: String) -> Self {
         Self {
             account_id,
-            api_key
+            api_key,
         }
     }
 }
@@ -64,27 +64,40 @@ impl MusicServiceExt for YoutubeService {
         let body: YoutubeApiPlaylistsListResponse = reqwest::get(format!(
             "{}{}&key={}",
             API_YOUTUBE_GET_PLAYLISTS_URL, self.account_id, self.api_key
-        )).await.unwrap().json().await.unwrap();
+        ))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
 
         let mut playlists: Vec<MusicObject> = vec![];
 
         for item in body.items.iter() {
             let body: YoutubeApiPlaylistItemsListResponse = reqwest::get(format!(
                 "{}{}&key={}",
-                API_YOUTUBE_GET_PLAYLIST_ITEMS_URL, item.id.clone(), self.api_key
-            )).await.unwrap().json().await.unwrap();
+                API_YOUTUBE_GET_PLAYLIST_ITEMS_URL,
+                item.id.clone(),
+                self.api_key
+            ))
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
 
             let music_object = MusicObject::new();
 
-            let first_item = body.items.get(0).map(|item|
-                item.snippet.resource_id.video_id.clone()
-            );
+            let first_item = body
+                .items
+                .get(0)
+                .map(|item| item.snippet.resource_id.video_id.clone());
 
             music_object.imp().data.replace(MusicData {
                 id: item.id.clone(),
                 title: item.snippet.title.clone(),
                 first_id: first_item.clone(),
-                service: ConfigMusicService::Youtube
+                service: ConfigMusicService::Youtube,
             });
 
             playlists.push(music_object);

@@ -31,7 +31,8 @@ music:
 ";
 
 pub const ERROR_MUSIC_CONFIG: &str = "You have to configure music service in the config file.";
-pub const ERROR_DAEMON: &str = "You cannot run more than one daemon instance. Close all running services and try again.";
+pub const ERROR_DAEMON: &str =
+    "You cannot run more than one daemon instance. Close all running services and try again.";
 pub const ERROR_RESOURCES: &str = "Failed to register resources.";
 pub const ERROR_DISPLAY: &str = "Could not connect to a display.";
 pub const ERROR_ITEMS: &str = "Could not get current items.";
@@ -54,7 +55,8 @@ pub const API_YOUTUBE_GET_PLAYLISTS_URL: &str =
 pub const API_YOUTUBE_GET_PLAYLIST_ITEMS_URL: &str =
     "https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=1&playlistId=";
 
-pub const MUSIC_YOUTUBE_URL: &str = "https://www.youtube.com/watch?v={VIDEO_ID}&list={LIST_ID}&index=1";
+pub const MUSIC_YOUTUBE_URL: &str =
+    "https://www.youtube.com/watch?v={VIDEO_ID}&list={LIST_ID}&index=1";
 
 #[cfg(debug_assertions)]
 pub const DBUS_SESSION_NAME: &str = "wm.crab.GDBus.LauncherServerDebug";

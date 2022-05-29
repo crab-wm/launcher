@@ -1,14 +1,17 @@
-use std::process::exit;
-use std::str::FromStr;
-use gtk::gio;
-use gtk::gio::{BusNameOwnerFlags, BusNameWatcherFlags, BusType, DBusConnection, DBusMessage, DBusMethodInvocation, DBusNodeInfo, DBusSendMessageFlags, OwnerId};
-use gtk::glib::{MainLoop, Variant, VariantTy};
 use crate::consts::*;
 use crate::gio::glib::Sender;
+use gtk::gio;
+use gtk::gio::{
+    BusNameOwnerFlags, BusNameWatcherFlags, BusType, DBusConnection, DBusMessage,
+    DBusMethodInvocation, DBusNodeInfo, DBusSendMessageFlags, OwnerId,
+};
+use gtk::glib::{MainLoop, Variant, VariantTy};
+use std::process::exit;
+use std::str::FromStr;
 
 #[derive(Copy, Clone)]
 pub enum CrabDaemonMethod {
-    ShowWindow
+    ShowWindow,
 }
 
 impl FromStr for CrabDaemonMethod {
@@ -17,7 +20,7 @@ impl FromStr for CrabDaemonMethod {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "ShowWindow" => Ok(Self::ShowWindow),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -26,7 +29,8 @@ impl ToString for CrabDaemonMethod {
     fn to_string(&self) -> String {
         match self {
             CrabDaemonMethod::ShowWindow => "ShowWindow",
-        }.into()
+        }
+        .into()
     }
 }
 
@@ -48,7 +52,16 @@ impl CrabDaemonServer {
         )
     }
 
-    fn handle_method_call(_connection: DBusConnection, _sender: &str, _object_path: &str, _interface_name: &str, method_name: &str, _parameters: Variant, _invocation: DBusMethodInvocation, tx: Sender<bool>) {
+    fn handle_method_call(
+        _connection: DBusConnection,
+        _sender: &str,
+        _object_path: &str,
+        _interface_name: &str,
+        method_name: &str,
+        _parameters: Variant,
+        _invocation: DBusMethodInvocation,
+        tx: Sender<bool>,
+    ) {
         let method = CrabDaemonMethod::from_str(method_name);
 
         if let Ok(method) = method {
@@ -58,31 +71,68 @@ impl CrabDaemonServer {
         }
     }
 
-    fn handle_get_property(_connection: DBusConnection, _sender: &str, _object_path: &str, _interface_name: &str, _property_name: &str) -> Variant {
+    fn handle_get_property(
+        _connection: DBusConnection,
+        _sender: &str,
+        _object_path: &str,
+        _interface_name: &str,
+        _property_name: &str,
+    ) -> Variant {
         Variant::from_none(VariantTy::ANY)
     }
 
-    fn handle_set_property(_connection: DBusConnection, _sender: &str, _object_path: &str, _interface_name: &str, _property_name: &str, _value: Variant) -> bool {
+    fn handle_set_property(
+        _connection: DBusConnection,
+        _sender: &str,
+        _object_path: &str,
+        _interface_name: &str,
+        _property_name: &str,
+        _value: Variant,
+    ) -> bool {
         true
     }
 
     fn on_bus_acquired(connection: DBusConnection, _name: &str, tx: Sender<bool>) {
-        let introspection_xml = format!("\
+        let introspection_xml = format!(
+            "\
             <node>\
               <interface name='{}'>\
                 <method name='ShowWindow'/>\
               </interface>\
-            </node>", DBUS_INTERFACE_NAME);
+            </node>",
+            DBUS_INTERFACE_NAME
+        );
 
         let introspection_data = DBusNodeInfo::for_xml(&introspection_xml).unwrap();
 
-        let _registration_id = connection.register_object(
-            DBUS_OBJECT_PATH,
-            &introspection_data.lookup_interface(DBUS_INTERFACE_NAME).unwrap(),
-            move |connection, sender, object_path, interface_name, method_name, parameters, invocation| Self::handle_method_call(connection, sender, object_path, interface_name, method_name, parameters, invocation, tx.clone()),
-            Self::handle_get_property,
-            Self::handle_set_property
-        ).unwrap();
+        let _registration_id = connection
+            .register_object(
+                DBUS_OBJECT_PATH,
+                &introspection_data
+                    .lookup_interface(DBUS_INTERFACE_NAME)
+                    .unwrap(),
+                move |connection,
+                      sender,
+                      object_path,
+                      interface_name,
+                      method_name,
+                      parameters,
+                      invocation| {
+                    Self::handle_method_call(
+                        connection,
+                        sender,
+                        object_path,
+                        interface_name,
+                        method_name,
+                        parameters,
+                        invocation,
+                        tx.clone(),
+                    )
+                },
+                Self::handle_get_property,
+                Self::handle_set_property,
+            )
+            .unwrap();
     }
 
     fn on_name_acquired(_connection: DBusConnection, _name: &str) {}
@@ -107,7 +157,7 @@ impl CrabDaemonClient {
             move |connection, name, name_owner| {
                 Self::on_name_appeared(connection, name, name_owner, method);
             },
-            Self::on_name_vanished
+            Self::on_name_vanished,
         );
 
         MainLoop::new(None, false).run();
@@ -115,15 +165,22 @@ impl CrabDaemonClient {
         gio::bus_unwatch_name(watcher_id);
     }
 
-    fn on_name_appeared(connection: DBusConnection, _name: &str, name_owner: &str, method: CrabDaemonMethod) {
+    fn on_name_appeared(
+        connection: DBusConnection,
+        _name: &str,
+        name_owner: &str,
+        method: CrabDaemonMethod,
+    ) {
         let method_call_message = DBusMessage::new_method_call(
             Some(name_owner),
             DBUS_OBJECT_PATH,
             Some(DBUS_INTERFACE_NAME),
-            &method.to_string()
+            &method.to_string(),
         );
 
-        connection.send_message(&method_call_message, DBusSendMessageFlags::NONE).unwrap();
+        connection
+            .send_message(&method_call_message, DBusSendMessageFlags::NONE)
+            .unwrap();
 
         exit(0);
     }

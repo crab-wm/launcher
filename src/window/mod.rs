@@ -1,4 +1,3 @@
-use std::process::Command;
 use super::consts::*;
 use super::utils::*;
 use crate::crab_row::CrabRow;
@@ -10,6 +9,7 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, CustomFilter, Inhibit, SignalListItemFactory, SingleSelection};
 use gtk::{glib, Application, FilterChange};
+use std::process::Command;
 
 mod imp;
 
@@ -22,7 +22,8 @@ glib::wrapper! {
 
 impl Window {
     pub fn new(app: &Application, is_daemon: bool) -> Self {
-        Object::new(&[("application", app), ("is-daemon", &is_daemon.to_value())]).expect("Failed to create `Window`.")
+        Object::new(&[("application", app), ("is-daemon", &is_daemon.to_value())])
+            .expect("Failed to create `Window`.")
     }
 
     pub fn current_filter(&self) -> CustomFilter {
@@ -198,10 +199,15 @@ impl Window {
 
     pub fn clean_up(&self) {
         self.current_selection_model().select_item(0, true);
-        self.imp().crab_items_list.activate_action("list.scroll-to-item", Some(&0.to_variant())).unwrap();
+        self.imp()
+            .crab_items_list
+            .activate_action("list.scroll-to-item", Some(&0.to_variant()))
+            .unwrap();
 
         self.imp().entry.buffer().set_text("");
-        self.imp().entry.set_placeholder_text(Some(PLACEHOLDER_PROGRAMS));
+        self.imp()
+            .entry
+            .set_placeholder_text(Some(PLACEHOLDER_PROGRAMS));
 
         self.imp().tabs.change_tab(Some(CrabTab::Programs));
     }
@@ -209,8 +215,7 @@ impl Window {
     pub fn hide_or_close(&self) {
         if self.property("is-daemon") {
             self.hide();
-        }
-        else {
+        } else {
             self.close();
         }
     }

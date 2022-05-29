@@ -1,14 +1,14 @@
 use crate::consts::*;
 use crate::crab_tabs::CrabTabs;
+use crate::gio::glib::{ParamSpec, Value};
 use glib::subclass::InitializingObject;
+use gtk::glib::{ParamFlags, ParamSpecBoolean};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, glib, CustomFilter, ScrolledWindow, SingleSelection};
 use gtk::{CompositeTemplate, Entry, ListView};
-use std::cell::{Cell, RefCell};
-use gtk::glib::{ParamFlags, ParamSpecBoolean};
 use once_cell::sync::Lazy;
-use crate::gio::glib::{ParamSpec, Value};
+use std::cell::{Cell, RefCell};
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
@@ -24,7 +24,7 @@ pub struct Window {
     pub current_items: RefCell<Option<gio::ListStore>>,
     pub current_filter: RefCell<CustomFilter>,
     pub current_selection_model: RefCell<SingleSelection>,
-    pub is_daemon: Cell<bool>
+    pub is_daemon: Cell<bool>,
 }
 
 #[glib::object_subclass]
@@ -56,17 +56,10 @@ impl ObjectImpl for Window {
         PROPERTIES.as_ref()
     }
 
-    fn set_property(
-        &self,
-        _obj: &Self::Type,
-        _id: usize,
-        value: &Value,
-        pspec: &ParamSpec,
-    ) {
+    fn set_property(&self, _obj: &Self::Type, _id: usize, value: &Value, pspec: &ParamSpec) {
         match pspec.name() {
             "is-daemon" => {
-                let input_value =
-                    value.get().expect("The value needs to be of type `bool`.");
+                let input_value = value.get().expect("The value needs to be of type `bool`.");
                 self.is_daemon.replace(input_value);
             }
             _ => unimplemented!(),

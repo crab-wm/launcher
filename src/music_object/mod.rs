@@ -1,12 +1,12 @@
+use crate::config::ConfigMusicService;
+use crate::consts::*;
 use crate::crab_row::imp::CrabRowExt;
 use glib::Object;
 use gtk::glib;
 use gtk::subclass::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::cell::RefCell;
-use serde::{Serialize, Deserialize};
-use crate::config::ConfigMusicService;
-use crate::consts::*;
 
 mod imp;
 
@@ -34,8 +34,8 @@ impl MusicObject {
             ConfigMusicService::Youtube => Some(
                 MUSIC_YOUTUBE_URL
                     .replace("{VIDEO_ID}", &music_data.borrow().first_id.clone().unwrap())
-                    .replace("{LIST_ID}", &music_data.borrow().id.clone())
-            )
+                    .replace("{LIST_ID}", &music_data.borrow().id.clone()),
+            ),
         }
     }
 }

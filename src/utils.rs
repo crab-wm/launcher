@@ -1,14 +1,17 @@
-use std::borrow::{Borrow};
-use std::cell::RefCell;
 use crate::config::{ConfigMusic, ConfigMusicService};
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;
-use crate::{Window, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, DATA_MUSIC_YOUTUBE_TEMP_FILE, MusicData, TEMP_DATA};
-use gtk::gio::{AppInfo};
+use crate::{
+    MusicData, Window, DATA_MUSIC_YOUTUBE_TEMP_FILE, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS,
+    TEMP_DATA,
+};
+use gtk::gio::AppInfo;
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gio, CustomFilter, FilterListModel, SingleSelection};
+use std::borrow::Borrow;
+use std::cell::RefCell;
 use std::process::exit;
 
 pub fn open_app(app_info: &AppInfo, window: &Window) {
@@ -136,8 +139,18 @@ pub fn get_music_model(window: &Window) -> (CustomFilter, SingleSelection) {
     let filter_model = FilterListModel::new(Some(&window.current_items()), Some(&filter));
 
     let sorter = gtk::CustomSorter::new(move |obj1, obj2| {
-        let music_object1: &RefCell<MusicData> = obj1.downcast_ref::<MusicObject>().unwrap().imp().data.borrow();
-        let music_object2: &RefCell<MusicData> = obj2.downcast_ref::<MusicObject>().unwrap().imp().data.borrow();
+        let music_object1: &RefCell<MusicData> = obj1
+            .downcast_ref::<MusicObject>()
+            .unwrap()
+            .imp()
+            .data
+            .borrow();
+        let music_object2: &RefCell<MusicData> = obj2
+            .downcast_ref::<MusicObject>()
+            .unwrap()
+            .imp()
+            .data
+            .borrow();
 
         music_object1
             .borrow()
@@ -157,10 +170,7 @@ pub fn setup_programs_model(window: &Window) -> (CustomFilter, SingleSelection) 
     get_programs_model(window)
 }
 
-pub fn setup_list_model(
-    window: &Window,
-    tab: &CrabTab,
-) -> (CustomFilter, SingleSelection) {
+pub fn setup_list_model(window: &Window, tab: &CrabTab) -> (CustomFilter, SingleSelection) {
     match tab {
         CrabTab::Programs => get_programs_model(window),
         CrabTab::Music => get_music_model(window),
@@ -171,6 +181,6 @@ pub fn get_temp_music_file_path(config: Option<&ConfigMusic>) -> Option<String> 
     config?;
 
     match config.as_ref().unwrap().service {
-        ConfigMusicService::Youtube => Some(DATA_MUSIC_YOUTUBE_TEMP_FILE.to_string())
+        ConfigMusicService::Youtube => Some(DATA_MUSIC_YOUTUBE_TEMP_FILE.to_string()),
     }
 }

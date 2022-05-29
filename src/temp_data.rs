@@ -1,9 +1,9 @@
-use std::fs;
-use crate::{CONFIG, MusicData};
 use crate::utils::get_temp_music_file_path;
+use crate::{MusicData, CONFIG};
+use std::fs;
 
 pub struct TempData {
-    pub playlists: Vec<MusicData>
+    pub playlists: Vec<MusicData>,
 }
 
 impl Default for TempData {
@@ -22,30 +22,24 @@ impl TempData {
         let temp_data_file_path = get_temp_music_file_path(config.music.as_ref());
 
         if temp_data_file_path.is_none() {
-            return Self {
-                playlists: vec![]
-            };
+            return Self { playlists: vec![] };
         }
 
         let temp_data_file = format!("{}{}", data_dir, temp_data_file_path.unwrap());
         let data_file = fs::File::open(&temp_data_file);
 
         if data_file.is_err() {
-            return Self {
-                playlists: vec![]
-            };
+            return Self { playlists: vec![] };
         }
 
         let playlists = serde_json::from_reader::<_, Vec<MusicData>>(data_file.unwrap());
 
         if playlists.is_err() {
-            return Self {
-                playlists: vec![]
-            };
+            return Self { playlists: vec![] };
         }
 
         Self {
-            playlists: playlists.unwrap()
+            playlists: playlists.unwrap(),
         }
     }
 }
