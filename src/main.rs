@@ -8,6 +8,7 @@ mod window;
 mod daemon;
 mod music_service;
 mod temp_data;
+mod history;
 
 use serde_json::json;
 use std::cell::RefCell;
@@ -31,10 +32,13 @@ use crate::utils::{display_err, get_temp_music_file_path};
 use crate::daemon::{CrabDaemonClient, CrabDaemonMethod, CrabDaemonServer};
 use consts::*;
 use window::Window;
+use crate::history::History;
 use crate::music_object::MusicData;
 use crate::music_service::MusicServiceExt;
 use crate::music_service::youtube_service::YoutubeService;
 use crate::temp_data::TempData;
+
+pub static HISTORY: Lazy<Mutex<History>> = Lazy::new(|| Mutex::new(History::new()));
 
 pub static CONFIG: Lazy<Mutex<Config>> = Lazy::new(|| Mutex::new(Config::new()));
 
@@ -105,17 +109,9 @@ fn generate_config() {
     let config_dir = dirs::config_dir().unwrap();
     let config_dir = config_dir.as_os_str().to_str().unwrap();
 
-    fs::create_dir_all(format!(
-        "{}{}",
-        config_dir,
-        CONFIG_USER_DIR
-    )).unwrap();
+    fs::create_dir_all(format!("{}{}", config_dir, CONFIG_USER_DIR)).unwrap();
 
-    fs::create_dir_all(format!(
-        "{}{}",
-        config_dir,
-        CONFIG_DEFAULT_DIR
-    )).unwrap();
+    fs::create_dir_all(format!("{}{}", config_dir, CONFIG_DEFAULT_DIR)).unwrap();
 
     let mut file = File::create(format!(
         "{}{}",
@@ -189,12 +185,7 @@ async fn fetch_playlists() {
     let data_dir = dirs::data_local_dir().unwrap();
     let data_dir = data_dir.to_str().unwrap();
 
-    fs::create_dir_all(format!(
-        "{}{}",
-        data_dir,
-        DATA_DIR
-    )).unwrap();
-
+    fs::create_dir_all(format!("{}{}", data_dir, DATA_DIR)).unwrap();
 
     let youtube_service = YoutubeService::new(config.music.as_ref().unwrap().account_id.clone(), config.music.as_ref().unwrap().api_key.clone());
     let playlists = youtube_service.get_all_playlists().await;

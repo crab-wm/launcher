@@ -71,7 +71,9 @@ impl Window {
 
         self.imp().entry.connect_activate(
             clone!(@weak self as window => move |_| {
-                let row_data = &window.current_selection_model().selected_item().unwrap().downcast::<AppInfo>();
+                let row_data = &window.current_selection_model().selected_item();
+                if let None = row_data { return; }
+                let row_data = row_data.as_ref().unwrap().clone().downcast::<AppInfo>();
 
                 if let Ok(row_data) = row_data {
                     open_app(&row_data, &window);
@@ -142,7 +144,9 @@ impl Window {
                     Inhibit(true)
                 }
                 KEY_ENTER => {
-                    let row_data = &selection_model.selected_item().unwrap().downcast::<AppInfo>();
+                    let row_data = &window.current_selection_model().selected_item();
+                    if let None = row_data { return Inhibit(false); }
+                    let row_data = row_data.as_ref().unwrap().clone().downcast::<AppInfo>();
 
                     if let Ok(row_data) = row_data {
                         open_app(&row_data, &window);

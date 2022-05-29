@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow};
 use std::cell::RefCell;
 use crate::config::{ConfigMusic, ConfigMusicService};
 use crate::crab_tabs::imp::CrabTab;

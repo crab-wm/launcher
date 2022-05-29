@@ -1,7 +1,11 @@
+#[cfg(debug_assertions)]
+pub const APP_ID: &str = "wm.crab.launcher-debug";
+#[cfg(not(debug_assertions))]
 pub const APP_ID: &str = "wm.crab.launcher";
 pub const APP_TITLE: &str = "crab-launcher";
 
 pub const DATA_DIR: &str = "/crab/launcher";
+pub const DATA_HISTORY_TEMP_FILE: &str = "/crab/launcher/history";
 pub const DATA_MUSIC_YOUTUBE_TEMP_FILE: &str = "/crab/launcher/youtube.temp";
 //pub const DATA_MUSIC_SPOTIFY_TEMP_FILE: &str = "/crab/launcher/spotify.temp";
 
