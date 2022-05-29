@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install GTK
+      run: sudo apt-get install -y libgtk-4-bin libgtk-4-common libgtk-4-dev libgtk-4-doc
     - name: Build
       run: cargo build --verbose
     - name: Run tests
@@ -22,6 +24,8 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v1
+        - name: Install GTK
+          run: sudo apt-get install -y libgtk-4-bin libgtk-4-common libgtk-4-dev libgtk-4-doc
         - run: rustup component add clippy
         - uses: actions-rs/clippy-check@v1
           with:
