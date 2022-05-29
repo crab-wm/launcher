@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Install GTK
@@ -21,7 +21,7 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
   clippy_check:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04
       steps:
         - uses: actions/checkout@v1
         - name: Install GTK
