@@ -1,3 +1,33 @@
+use std::cell::RefCell;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
+use std::process::exit;
+use std::rc::Rc;
+use std::sync::Mutex;
+
+use gtk::{CssProvider, gio, StyleContext};
+use gtk::Application;
+use gtk::gdk::Display;
+use gtk::glib::{clone, MainContext, MainLoop, PRIORITY_DEFAULT, Receiver};
+use gtk::prelude::*;
+use gtk::subclass::prelude::ObjectSubclassIsExt;
+use once_cell::sync::Lazy;
+use serde_json::json;
+use sysinfo::{System, SystemExt};
+
+use consts::*;
+use window::Window;
+
+use crate::config::Config;
+use crate::daemon::{CrabDaemonClient, CrabDaemonMethod, CrabDaemonServer};
+use crate::history::History;
+use crate::music_object::MusicData;
+use crate::music_service::MusicServiceExt;
+use crate::music_service::youtube_service::YoutubeService;
+use crate::temp_data::TempData;
+use crate::utils::{display_err, get_temp_music_file_path};
+
 mod config;
 mod consts;
 mod crab_row;
@@ -9,34 +39,6 @@ mod music_service;
 mod temp_data;
 mod utils;
 mod window;
-
-use gtk::gdk::Display;
-use gtk::glib::{clone, MainContext, MainLoop, Receiver, PRIORITY_DEFAULT};
-use gtk::prelude::*;
-use gtk::subclass::prelude::ObjectSubclassIsExt;
-use gtk::Application;
-use gtk::{gio, CssProvider, StyleContext};
-use once_cell::sync::Lazy;
-use serde_json::json;
-use std::cell::RefCell;
-use std::fs;
-use std::fs::File;
-use std::io::Write;
-use std::process::exit;
-use std::rc::Rc;
-use std::sync::Mutex;
-use sysinfo::{System, SystemExt};
-
-use crate::config::Config;
-use crate::daemon::{CrabDaemonClient, CrabDaemonMethod, CrabDaemonServer};
-use crate::history::History;
-use crate::music_object::MusicData;
-use crate::music_service::youtube_service::YoutubeService;
-use crate::music_service::MusicServiceExt;
-use crate::temp_data::TempData;
-use crate::utils::{display_err, get_temp_music_file_path};
-use consts::*;
-use window::Window;
 
 pub static HISTORY: Lazy<Mutex<History>> = Lazy::new(|| Mutex::new(History::new()));
 
@@ -195,15 +197,11 @@ async fn fetch_playlists() {
         config.music.as_ref().unwrap().api_key.clone(),
     );
 
-    drop(config);
-
     let playlists = youtube_service.get_all_playlists().await;
     let playlists = json!(playlists
         .iter()
         .map(|music_object| music_object.imp().data.take())
         .collect::<Vec<MusicData>>());
-
-    let config = CONFIG.lock().unwrap();
 
     serde_json::to_writer(
         &File::create(format!(
@@ -224,6 +222,7 @@ fn show_help() {
         ("--show               ", "Shows the launcher window. Will work only if daemon service is running in the background."),
         ("--run                ", "Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched automatically (if config set up). To fetch them, use --fetch option before."),
         ("--daemon             ", "Runs the daemon service. App launched in background automatically fetched playlists (if config set up). To show the window, use --show option."),
+        ("--obtain-key         ", "Obtains API key for selected music provider and saves it to config file (if it exists)."),
         ("--help               ", "Shows help."),
     ];
 
