@@ -214,7 +214,7 @@ fn show_help() {
 
     println!("USAGE: crab-launcher <OPTION>");
     println!();
-    println!("Available command:");
+    println!("Available commands:");
 
     for (option, description) in usage_commands_list {
         println!("{} {}", option, description);
