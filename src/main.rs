@@ -183,9 +183,7 @@ fn run_standalone() {
 async fn fetch_playlists() {
     let config = CONFIG.lock().unwrap();
 
-    if config.music.is_none() {
-        display_err(ERROR_MUSIC_CONFIG);
-    }
+    if config.music.is_none() { return; }
 
     let data_dir = dirs::data_local_dir().unwrap();
     let data_dir = data_dir.to_str().unwrap();

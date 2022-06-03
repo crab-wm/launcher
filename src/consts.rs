@@ -30,7 +30,6 @@ music:
   api_key: \"\"
 ";
 
-pub const ERROR_MUSIC_CONFIG: &str = "You have to configure music service in the config file.";
 pub const ERROR_DAEMON: &str =
     "You cannot run more than one daemon instance. Close all running services and try again.";
 pub const ERROR_RESOURCES: &str = "Failed to register resources.";
