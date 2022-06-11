@@ -1,18 +1,17 @@
-use crate::config::{ConfigMusic, ConfigMusicService};
-use crate::crab_tabs::imp::CrabTab;
-use crate::music_object::MusicObject;
-use crate::{
-    MusicData, Window, DATA_MUSIC_YOUTUBE_TEMP_FILE, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS,
-    TEMP_DATA,
-};
+use std::borrow::Borrow;
+use std::cell::RefCell;
+use std::process::exit;
+
+use gtk::{CustomFilter, FilterListModel, gio, SingleSelection};
 use gtk::gio::AppInfo;
 use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, CustomFilter, FilterListModel, SingleSelection};
-use std::borrow::Borrow;
-use std::cell::RefCell;
-use std::process::exit;
+
+use crate::{DATA_MUSIC_SPOTIFY_TEMP_FILE, DATA_MUSIC_YOUTUBE_TEMP_FILE, MusicData, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, TEMP_DATA, Window};
+use crate::config::{ConfigMusic, ConfigMusicService};
+use crate::crab_tabs::imp::CrabTab;
+use crate::music_object::MusicObject;
 
 pub fn open_app(app_info: &AppInfo, window: &Window) {
     let context = gtk::Window::new().display().app_launch_context();
@@ -182,5 +181,6 @@ pub fn get_temp_music_file_path(config: Option<&ConfigMusic>) -> Option<String> 
 
     match config.as_ref().unwrap().service {
         ConfigMusicService::Youtube => Some(DATA_MUSIC_YOUTUBE_TEMP_FILE.to_string()),
+        ConfigMusicService::Spotify => Some(DATA_MUSIC_SPOTIFY_TEMP_FILE.to_string()),
     }
 }

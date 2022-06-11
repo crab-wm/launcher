@@ -1,12 +1,15 @@
-use crate::config::ConfigMusicService;
-use crate::consts::*;
-use crate::crab_row::imp::CrabRowExt;
+use std::borrow::Borrow;
+use std::cell::RefCell;
+use std::process::Command;
+
 use glib::Object;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::borrow::Borrow;
-use std::cell::RefCell;
+
+use crate::config::ConfigMusicService;
+use crate::consts::*;
+use crate::crab_row::imp::CrabRowExt;
 
 mod imp;
 
@@ -25,7 +28,7 @@ impl MusicObject {
         Object::new(&[]).expect("Failed to create `MusicObject`.")
     }
 
-    pub fn get_url(&self) -> Option<String> {
+    pub fn get_uri(&self) -> Option<String> {
         let music_data: &RefCell<MusicData> = self.imp().data.borrow();
 
         music_data.borrow().first_id.as_ref()?;
@@ -36,6 +39,27 @@ impl MusicObject {
                     .replace("{VIDEO_ID}", &music_data.borrow().first_id.clone().unwrap())
                     .replace("{LIST_ID}", &music_data.borrow().id.clone()),
             ),
+            ConfigMusicService::Spotify => Some(
+                MUSIC_SPOFITY_URL
+                    .replace("{TRACK_ID}", &music_data.borrow().first_id.clone().unwrap())
+                    .replace("{LIST_ID}", &music_data.borrow().id.clone()),
+            ),
+        }
+    }
+
+    pub fn start_playing(&self) {
+        let music_data: &RefCell<MusicData> = self.imp().data.borrow();
+        let action_uri = self.get_uri().unwrap();
+
+        println!("{}", action_uri);
+
+        match music_data.borrow().service {
+            ConfigMusicService::Youtube => {
+                Command::new("xdg-open").arg(action_uri).spawn().unwrap();
+            },
+            ConfigMusicService::Spotify => {
+                Command::new("spotify").args(["--uri", &action_uri]).spawn().unwrap();
+            },
         }
     }
 }

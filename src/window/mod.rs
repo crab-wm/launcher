@@ -1,15 +1,19 @@
-use super::consts::*;
-use super::utils::*;
-use crate::crab_row::CrabRow;
-use crate::crab_tabs::imp::CrabTab;
-use crate::music_object::MusicObject;
+use std::process::Command;
+
+use gtk::{CustomFilter, gio, Inhibit, SignalListItemFactory, SingleSelection};
+use gtk::{Application, FilterChange, glib};
 use gtk::gio::AppInfo;
 use gtk::glib::{clone, Object};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, CustomFilter, Inhibit, SignalListItemFactory, SingleSelection};
-use gtk::{glib, Application, FilterChange};
-use std::process::Command;
+
+use crate::ConfigMusicService;
+use crate::crab_row::CrabRow;
+use crate::crab_tabs::imp::CrabTab;
+use crate::music_object::MusicObject;
+
+use super::consts::*;
+use super::utils::*;
 
 mod imp;
 
@@ -82,11 +86,11 @@ impl Window {
                 else {
                     let row_data = &window.current_selection_model().selected_item().unwrap().downcast::<MusicObject>().unwrap();
 
-                    if row_data.get_url().is_none() {
+                    if row_data.get_uri().is_none() {
                         return;
                     }
 
-                    Command::new("xdg-open").arg(row_data.get_url().unwrap()).spawn().unwrap();
+                    Command::new("xdg-open").arg(row_data.get_uri().unwrap()).spawn().unwrap();
 
                     window.hide_or_close();
                 }
@@ -155,11 +159,11 @@ impl Window {
                     else {
                         let row_data = &selection_model.selected_item().unwrap().downcast::<MusicObject>().unwrap();
 
-                        if row_data.get_url().is_none() {
+                        if row_data.get_uri().is_none() {
                             return Inhibit(false);
                         }
 
-                        Command::new("xdg-open").arg(row_data.get_url().unwrap()).spawn().unwrap();
+                        row_data.start_playing();
 
                         window.hide_or_close();
                     }

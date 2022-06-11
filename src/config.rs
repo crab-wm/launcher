@@ -1,13 +1,17 @@
-use crate::consts::*;
-use crate::utils::*;
+use std::fs;
+
 use gtk::CssProvider;
 use serde::{Deserialize, Serialize};
-use std::fs;
+
+use crate::consts::*;
+use crate::utils::*;
 
 #[derive(Deserialize, Debug, Serialize, Clone)]
 pub enum ConfigMusicService {
     #[serde(rename = "youtube")]
     Youtube,
+    #[serde(rename = "spotify")]
+    Spotify,
 }
 
 impl Default for ConfigMusicService {

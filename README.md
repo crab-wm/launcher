@@ -68,5 +68,4 @@ This section contains all the available options for running `crab-launcher`.
 - `--run` - Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched automatically (if config set up). To fetch them, use `--fetch` option before.
 - `--daemon` - Runs the daemon service. App launched in background automatically fetched playlists (if config set up).
   To show the window, use `--show` option.
-- `--obtain-key` - Obtains API key for selected music provider and saves it to config file (if it exists).
 - `--help` - Shows help.

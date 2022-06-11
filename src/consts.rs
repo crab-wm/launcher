@@ -1,16 +1,27 @@
 #[cfg(debug_assertions)]
 pub const APP_ID: &str = "wm.crab.launcher-debug";
+
 #[cfg(not(debug_assertions))]
 pub const APP_ID: &str = "wm.crab.launcher";
+
 pub const APP_TITLE: &str = "crab-launcher";
 
 pub const DATA_DIR: &str = "/crab/launcher";
 pub const DATA_HISTORY_TEMP_FILE: &str = "/crab/launcher/history";
 pub const DATA_MUSIC_YOUTUBE_TEMP_FILE: &str = "/crab/launcher/youtube.temp";
-//pub const DATA_MUSIC_SPOTIFY_TEMP_FILE: &str = "/crab/launcher/spotify.temp";
+pub const DATA_MUSIC_SPOTIFY_TEMP_FILE: &str = "/crab/launcher/spotify.temp";
+pub const DATA_MUSIC_SPOTIFY_CACHE_FILE: &str = "/crab/launcher/.spotify_token_cache.json";
 
+#[cfg(not(debug_assertions))]
 pub const CONFIG_USER_PATH: &str = "/crab/launcher.yaml";
+#[cfg(not(debug_assertions))]
 pub const CONFIG_DEFAULT_PATH: &str = "/crab/launcher_def.yaml";
+
+#[cfg(debug_assertions)]
+pub const CONFIG_USER_PATH: &str = "/crab/launcher_debug.yaml";
+#[cfg(debug_assertions)]
+pub const CONFIG_DEFAULT_PATH: &str = "/crab/launcher_def_debug.yaml";
+
 pub const CONFIG_USER_DIR: &str = "/crab";
 pub const CONFIG_DEFAULT_DIR: &str = "/crab";
 pub const CONFIG_GENERATED: &str = "Config generated successfully! You can find it in `~/.config/crab/launcher_def.yaml`. Copy the file to `~/.config/crab/launcher.yaml` and edit it as you want!";
@@ -46,6 +57,8 @@ pub const KEY_RIGHT_SHIFT: u32 = 62;
 pub const KEY_ENTER: u32 = 36;
 pub const KEY_TAB: u32 = 23;
 
+pub const MAX_CHARS_IN_ROW: usize = 32;
+
 pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
 pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";
 
@@ -56,6 +69,8 @@ pub const API_YOUTUBE_GET_PLAYLIST_ITEMS_URL: &str =
 
 pub const MUSIC_YOUTUBE_URL: &str =
     "https://www.youtube.com/watch?v={VIDEO_ID}&list={LIST_ID}&index=1";
+pub const MUSIC_SPOFITY_URL: &str =
+    "spotify:track:{TRACK_ID}?context={LIST_ID}";
 
 #[cfg(debug_assertions)]
 pub const DBUS_SESSION_NAME: &str = "wm.crab.GDBus.LauncherServerDebug";

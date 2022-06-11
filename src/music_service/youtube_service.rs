@@ -61,16 +61,16 @@ impl YoutubeService {
 
 #[async_trait(?Send)]
 impl MusicServiceExt for YoutubeService {
-    async fn get_all_playlists(&self) -> Vec<MusicObject> {
+    async fn get_all_playlists(&mut self) -> Vec<MusicObject> {
         let body: YoutubeApiPlaylistsListResponse = reqwest::get(format!(
             "{}{}&key={}",
             API_YOUTUBE_GET_PLAYLISTS_URL, self.account_id, self.api_key
         ))
-        .await
-        .unwrap()
-        .json()
-        .await
-        .unwrap();
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
 
         let mut playlists: Vec<MusicObject> = vec![];
 
