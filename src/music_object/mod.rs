@@ -51,14 +51,12 @@ impl MusicObject {
         let music_data: &RefCell<MusicData> = self.imp().data.borrow();
         let action_uri = self.get_uri().unwrap();
 
-        println!("{}", action_uri);
-
         match music_data.borrow().service {
             ConfigMusicService::Youtube => {
                 Command::new("xdg-open").arg(action_uri).spawn().unwrap();
             },
             ConfigMusicService::Spotify => {
-                Command::new("spotify").args(["--uri", &action_uri]).spawn().unwrap();
+                Command::new("spotify").arg(format!("--uri={}", &action_uri)).spawn().unwrap();
             },
         }
     }

@@ -104,10 +104,6 @@ impl MusicServiceExt for SpotifyService {
                 music_object
             });
 
-        let playlists = join_all(playlists).await;
-
-        println!("{:#?}", playlists);
-
-        playlists
+        join_all(playlists).await
     }
 }
