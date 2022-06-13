@@ -1,12 +1,10 @@
-//COMMAND TO RUN: spotify --uri="spotify:track:<TRACK>?context=spotify:playlist:<PLAYLIST>"
-
 use std::default::Default;
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use futures::future::join_all;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
-use rspotify::{AuthCodePkceSpotify, ClientResult, Config, Credentials, OAuth, scopes, Token};
+use rspotify::{AuthCodePkceSpotify, ClientResult, Config, Credentials, OAuth, scopes};
 use rspotify::clients::mutex::Mutex;
 use rspotify::model::{Page, SimplifiedPlaylist};
 use rspotify::prelude::{BaseClient, OAuthClient};
@@ -66,16 +64,22 @@ impl SpotifyService {
         AuthCodePkceSpotify::with_config(credentials, oauth, config)
     }
 
-    pub async fn regenerate_auth(&mut self) {
+    pub async fn regenerate_auth(&mut self) -> Result<(), ()> {
         let mut auth = SpotifyService::get_auth(false);
 
         let url = auth.get_authorize_url(None).unwrap();
-        auth.prompt_for_token(url.as_str()).await.unwrap();
+        let token_request = auth.prompt_for_token(url.as_str()).await;
+
+        if token_request.is_err() {
+            return Err(());
+        }
 
         auth.config.token_cached = true;
         auth.write_token_cache().await.unwrap();
 
         self.auth = auth;
+
+        Ok(())
     }
 
     pub async fn get_playlists(&self) -> ClientResult<Page<SimplifiedPlaylist>> {
@@ -96,7 +100,12 @@ impl MusicServiceExt for SpotifyService {
         if token_cache_error && !self.should_force_fetch { return vec![]; }
 
         if token_cache_error && self.should_force_fetch {
-            self.regenerate_auth().await;
+            let mut regen_request = self.regenerate_auth().await;
+
+            while regen_request.is_err() {
+                regen_request = self.regenerate_auth().await;
+            };
+
             token_cache = self.auth.read_token_cache(false).await;
         }
 
@@ -107,12 +116,21 @@ impl MusicServiceExt for SpotifyService {
         if playlists.is_err() {
             if !self.should_force_fetch { return vec![]; }
 
-            self.auth.prompt_for_token(url.as_str()).await.unwrap();
+            let mut token_request = self.auth.prompt_for_token(url.as_str()).await;
+
+            while token_request.is_err() {
+                token_request = self.auth.prompt_for_token(url.as_str()).await;
+            }
 
             playlists = self.get_playlists().await;
 
             if playlists.is_err() {
-                self.regenerate_auth().await;
+                let mut regen_request = self.regenerate_auth().await;
+
+                while regen_request.is_err() {
+                    regen_request = self.regenerate_auth().await;
+                };
+
                 playlists = self.get_playlists().await;
             }
         }
