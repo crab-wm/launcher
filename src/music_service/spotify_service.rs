@@ -1,11 +1,14 @@
 //COMMAND TO RUN: spotify --uri="spotify:track:<TRACK>?context=spotify:playlist:<PLAYLIST>"
 
 use std::default::Default;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use futures::future::join_all;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
-use rspotify::{AuthCodePkceSpotify, Config, Credentials, OAuth, scopes};
+use rspotify::{AuthCodePkceSpotify, ClientResult, Config, Credentials, OAuth, scopes, Token};
+use rspotify::clients::mutex::Mutex;
+use rspotify::model::{Page, SimplifiedPlaylist};
 use rspotify::prelude::{BaseClient, OAuthClient};
 
 use crate::{ConfigMusicService, DATA_MUSIC_SPOTIFY_CACHE_FILE, MusicData, MusicServiceExt};
@@ -26,12 +29,14 @@ impl<T> Flatten<T> for Option<Option<T>> {
 
 pub struct SpotifyService {
     auth: AuthCodePkceSpotify,
+    should_force_fetch: bool
 }
 
 impl SpotifyService {
-    pub fn new() -> Self {
+    pub fn new(should_force_fetch: bool) -> Self {
         Self {
-            auth: Self::get_auth(true)
+            auth: Self::get_auth(true),
+            should_force_fetch,
         }
     }
 
@@ -72,30 +77,44 @@ impl SpotifyService {
 
         self.auth = auth;
     }
+
+    pub async fn get_playlists(&self) -> ClientResult<Page<SimplifiedPlaylist>> {
+        self
+            .auth
+            .current_user_playlists_manual(Some(50), None)
+            .await
+    }
 }
 
 #[async_trait(? Send)]
 impl MusicServiceExt for SpotifyService {
     async fn get_all_playlists(&mut self) -> Vec<MusicObject> {
         let url = self.auth.get_authorize_url(None).unwrap();
-        let auth_token_request = self.auth.prompt_for_token(url.as_str()).await;
+        let mut token_cache = self.auth.read_token_cache(false).await;
+        let token_cache_error = token_cache.is_err() || token_cache.as_ref().unwrap_or(&None).is_none();
 
-        if auth_token_request.is_err() {
+        if token_cache_error && !self.should_force_fetch { return vec![]; }
+
+        if token_cache_error && self.should_force_fetch {
             self.regenerate_auth().await;
+            token_cache = self.auth.read_token_cache(false).await;
         }
 
-        let mut playlists = self
-            .auth
-            .current_user_playlists_manual(Some(50), None)
-            .await;
+        self.auth.token = Arc::new(Mutex::new(token_cache.unwrap_or(None)));
+
+        let mut playlists = self.get_playlists().await;
 
         if playlists.is_err() {
-            self.regenerate_auth().await;
+            if !self.should_force_fetch { return vec![]; }
 
-            playlists = self
-                .auth
-                .current_user_playlists_manual(Some(50), None)
-                .await;
+            self.auth.prompt_for_token(url.as_str()).await.unwrap();
+
+            playlists = self.get_playlists().await;
+
+            if playlists.is_err() {
+                self.regenerate_auth().await;
+                playlists = self.get_playlists().await;
+            }
         }
 
         let playlists = playlists.unwrap();

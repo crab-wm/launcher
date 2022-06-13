@@ -58,7 +58,7 @@ async fn main() {
     if let Some(arg) = arg {
         match arg.as_str() {
             "--generate-config" => generate_config(),
-            "--fetch" => fetch_playlists().await,
+            "--fetch" => fetch_playlists(true).await,
             "--show" => emit_show_window(),
             "--run" => run_standalone(),
             "--daemon" => run_daemon().await,
@@ -138,7 +138,7 @@ fn generate_config() {
 async fn run_daemon() {
     println!("Starting daemon...");
 
-    fetch_playlists().await;
+    fetch_playlists(false).await;
 
     let s = System::new_all();
 
@@ -184,7 +184,7 @@ fn run_standalone() {
     app.run_with_args::<&str>(&[]);
 }
 
-async fn fetch_playlists() {
+async fn fetch_playlists(should_force_fetch_playlists: bool) {
     let config = CONFIG.lock().unwrap();
 
     if config.music.is_none() { return; }
@@ -199,7 +199,7 @@ async fn fetch_playlists() {
             config.music.as_ref().unwrap().account_id.clone(),
             config.music.as_ref().unwrap().api_key.clone(),
         )),
-        ConfigMusicService::Spotify => Box::new(SpotifyService::new()),
+        ConfigMusicService::Spotify => Box::new(SpotifyService::new(should_force_fetch_playlists)),
     };
 
     let playlists = service.get_all_playlists().await;
