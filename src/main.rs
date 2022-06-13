@@ -226,7 +226,7 @@ fn show_help() {
         ("--fetch              ", "Generates temporary file containing all user's playlists for the selected service in config file. Make sure you fill in all the fields in config's music section."),
         ("--show               ", "Shows the launcher window. Will work only if daemon service is running in the background."),
         ("--run                ", "Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched automatically (if config set up). To fetch them, use --fetch option before."),
-        ("--daemon             ", "Runs the daemon service. App launched in background automatically fetches playlists (if config set up). If the music service is set to `spotify`, you have to fetch playlists manually for the first time (because of Spotify's sign in options). To show the window, use --show option."),
+        ("--daemon             ", "Runs the daemon service. App launched in background automatically fetches playlists (if config set up). You have to fetch playlists manually for the first time (`--fetch`), though. To show the window, use `--show` option."),
         ("--help               ", "Shows help."),
     ];
 

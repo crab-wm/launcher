@@ -26,6 +26,7 @@ pub const CONFIG_USER_DIR: &str = "/crab";
 pub const CONFIG_DEFAULT_DIR: &str = "/crab";
 pub const CONFIG_GENERATED: &str = "Config generated successfully! You can find it in `~/.config/crab/launcher_def.yaml`. Copy the file to `~/.config/crab/launcher.yaml` and edit it as you want!";
 pub const CONFIG_DEFAULT_STRING: &str = "\
+# Sets colors for the launcher accordingly to their names
 colors:
   bg: \"#1E2128\"
   secondary_bg: \"#32363D\"
@@ -33,10 +34,13 @@ colors:
   secondary_text: \"#989A9E\"
   accent: \"#62AEEF\"
 
+# Sets opacity for the title bar and bottom of the app
 opacity: 1.0
 
+# Optional settings for the `music` section of the launcher
 music:
   account_id: \"\"
+  # Currently available options: `youtube`, `spotify`
   service: \"youtube\"
   api_key: \"\"
 ";
