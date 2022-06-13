@@ -9,6 +9,7 @@ pub const APP_TITLE: &str = "crab-launcher";
 pub const DATA_DIR: &str = "/crab/launcher";
 pub const DATA_HISTORY_TEMP_FILE: &str = "/crab/launcher/history";
 pub const DATA_MUSIC_YOUTUBE_TEMP_FILE: &str = "/crab/launcher/youtube.temp";
+pub const DATA_MUSIC_YOUTUBE_CACHE_FILE: &str = "/crab/launcher/.youtube_token_cache.json";
 pub const DATA_MUSIC_SPOTIFY_TEMP_FILE: &str = "/crab/launcher/spotify.temp";
 pub const DATA_MUSIC_SPOTIFY_CACHE_FILE: &str = "/crab/launcher/.spotify_token_cache.json";
 
@@ -50,6 +51,7 @@ pub const ERROR_DAEMON: &str =
 pub const ERROR_RESOURCES: &str = "Failed to register resources.";
 pub const ERROR_DISPLAY: &str = "Could not connect to a display.";
 pub const ERROR_ITEMS: &str = "Could not get current items.";
+pub const ERROR_AUTH: &str = "Could not authenticate.";
 pub const ERROR_MISSING_CONFIG: &str = "Could not find configuration file for the application. Make sure you have a `~/.config/crab/launcher_def.yaml` file. If you don't have it, run `crab-launcher --generate-config`";
 pub const ERROR_BAD_CONFIG: &str = "Could not read configuration file. Make sure you have a `~/.config/crab/launcher_def.yaml` file and it's properly formatted.";
 
@@ -66,13 +68,8 @@ pub const MAX_CHARS_IN_ROW: usize = 32;
 pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
 pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";
 
-pub const API_YOUTUBE_GET_PLAYLISTS_URL: &str =
-    "https://youtube.googleapis.com/youtube/v3/playlists?part=id,snippet&channelId=";
-pub const API_YOUTUBE_GET_PLAYLIST_ITEMS_URL: &str =
-    "https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=1&playlistId=";
-
 pub const MUSIC_YOUTUBE_URL: &str =
-    "https://www.youtube.com/watch?v={VIDEO_ID}&list={LIST_ID}&index=1";
+    "https://www.youtube.com/watch?v={VIDEO_ID}&list={LIST_ID}";
 pub const MUSIC_SPOFITY_URL: &str =
     "spotify:track:{TRACK_ID}?context={LIST_ID}";
 

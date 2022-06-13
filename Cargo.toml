@@ -11,7 +11,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
 dirs = "4.0"
-reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1.18", features = ["full"] }
 sysinfo = "0.23"
 async-trait = "0.1"
@@ -19,6 +18,9 @@ rspotify = { version = "0.11", default-features = false, features = ["client-req
 dotenv = "0.15"
 dotenv_codegen = "0.15"
 futures = "0.3"
+google-youtube3 = "3.1"
+hyper-rustls = { version = "0.23", features = ["rustls-native-certs"] }
+hyper = "0.14"
 
 [build-dependencies]
 gtk = { version = "0.4", package = "gtk4" }

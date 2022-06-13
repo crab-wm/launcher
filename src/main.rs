@@ -195,10 +195,7 @@ async fn fetch_playlists(should_force_fetch_playlists: bool) {
     fs::create_dir_all(format!("{}{}", data_dir, DATA_DIR)).unwrap();
 
     let mut service: Box<dyn MusicServiceExt> = match config.music.as_ref().unwrap().service {
-        ConfigMusicService::Youtube => Box::new(YoutubeService::new(
-            config.music.as_ref().unwrap().account_id.clone(),
-            config.music.as_ref().unwrap().api_key.clone(),
-        )),
+        ConfigMusicService::Youtube => Box::new(YoutubeService::new(should_force_fetch_playlists).await),
         ConfigMusicService::Spotify => Box::new(SpotifyService::new(should_force_fetch_playlists)),
     };
 

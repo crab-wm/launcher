@@ -38,7 +38,7 @@ impl SpotifyService {
         }
     }
 
-    pub fn get_auth(token_cached: bool) -> AuthCodePkceSpotify {
+    fn get_auth(token_cached: bool) -> AuthCodePkceSpotify {
         let client_id = dotenv!("SPOTIFY_CLIENT_ID");
         let client_secret = dotenv!("SPOTIFY_CLIENT_SECRET");
         let redirect_uri = dotenv!("SPOTIFY_REDIRECT_URI");
@@ -64,8 +64,8 @@ impl SpotifyService {
         AuthCodePkceSpotify::with_config(credentials, oauth, config)
     }
 
-    pub async fn regenerate_auth(&mut self) -> Result<(), ()> {
-        let mut auth = SpotifyService::get_auth(false);
+    async fn regenerate_auth(&mut self) -> Result<(), ()> {
+        let mut auth = Self::get_auth(false);
 
         let url = auth.get_authorize_url(None).unwrap();
         let token_request = auth.prompt_for_token(url.as_str()).await;
@@ -82,7 +82,7 @@ impl SpotifyService {
         Ok(())
     }
 
-    pub async fn get_playlists(&self) -> ClientResult<Page<SimplifiedPlaylist>> {
+    async fn get_playlists(&self) -> ClientResult<Page<SimplifiedPlaylist>> {
         self
             .auth
             .current_user_playlists_manual(Some(50), None)
