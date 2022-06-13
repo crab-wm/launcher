@@ -16,7 +16,9 @@ After generating config file you have two options:
 - run standalone version: `crab-launcher --run`
 - run daemon and show window if you want to: `crab-launcher --daemon`, `crab-launcher --show`
 
-To fetch playlists for the standalone runtime, use `crab-launcher --fetch`. It's gonna read config file and fetch playlists with given informations and for the given service.
+To fetch playlists for the standalone runtime or for the first run with `spotify` service configured,
+use `crab-launcher --fetch`. It's going to read config file and fetch playlists with given informations and for the
+given service.
 
 You made it!
 
@@ -65,7 +67,9 @@ This section contains all the available options for running `crab-launcher`.
 - `--generate-config` - Generates configuration file and saves it in the default app directory. After finishing its work, it outputs the file location.
 - `--fetch` - Generates temporary file containing all user's playlists for the selected service in config file. Make sure you fill in all the fields in config's music section.
 - `--show` - Shows the launcher window. Will work only if daemon service is running in the background.
-- `--run` - Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched automatically (if config set up). To fetch them, use `--fetch` option before.
-- `--daemon` - Runs the daemon service. App launched in background automatically fetched playlists (if config set up).
-  To show the window, use `--show` option.
+- `--run` - Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched
+  automatically (if config set up). To fetch them, use `--fetch` option before.
+- `--daemon` - Runs the daemon service. App launched in background automatically fetches playlists (if config set up).
+  If the music service is set to `spotify`, you have to fetch playlists manually for the first time (because of
+  Spotify's sign in options). To show the window, use --show option.
 - `--help` - Shows help.
