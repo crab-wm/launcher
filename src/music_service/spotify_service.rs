@@ -1,7 +1,6 @@
 //COMMAND TO RUN: spotify --uri="spotify:track:<TRACK>?context=spotify:playlist:<PLAYLIST>"
 
 use std::default::Default;
-use std::fs;
 
 use async_trait::async_trait;
 use futures::future::join_all;
@@ -32,11 +31,11 @@ pub struct SpotifyService {
 impl SpotifyService {
     pub fn new() -> Self {
         Self {
-            auth: Self::get_auth()
+            auth: Self::get_auth(true)
         }
     }
 
-    pub fn get_auth() -> AuthCodePkceSpotify {
+    pub fn get_auth(token_cached: bool) -> AuthCodePkceSpotify {
         let client_id = dotenv!("SPOTIFY_CLIENT_ID");
         let client_secret = dotenv!("SPOTIFY_CLIENT_SECRET");
         let redirect_uri = dotenv!("SPOTIFY_REDIRECT_URI");
@@ -53,7 +52,7 @@ impl SpotifyService {
         let data_dir = data_dir.to_str().unwrap();
 
         let config = Config {
-            token_cached: true,
+            token_cached,
             token_refreshing: true,
             cache_path: format!("{}{}", data_dir, DATA_MUSIC_SPOTIFY_CACHE_FILE).parse().unwrap(),
             ..Default::default()
@@ -63,15 +62,13 @@ impl SpotifyService {
     }
 
     pub async fn regenerate_auth(&mut self) {
-        let data_dir = dirs::data_local_dir().unwrap();
-        let data_dir = data_dir.to_str().unwrap();
-
-        let _ = fs::remove_file(format!("{}{}", data_dir, DATA_MUSIC_SPOTIFY_CACHE_FILE));
-
-        let mut auth = SpotifyService::get_auth();
+        let mut auth = SpotifyService::get_auth(false);
 
         let url = auth.get_authorize_url(None).unwrap();
         auth.prompt_for_token(url.as_str()).await.unwrap();
+
+        auth.config.token_cached = true;
+        auth.write_token_cache().await.unwrap();
 
         self.auth = auth;
     }
