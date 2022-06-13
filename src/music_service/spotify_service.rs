@@ -135,6 +135,8 @@ impl MusicServiceExt for SpotifyService {
             }
         }
 
+        if playlists.is_err() { return vec![]; }
+
         let playlists = playlists.unwrap();
 
         let playlists = playlists
@@ -144,8 +146,11 @@ impl MusicServiceExt for SpotifyService {
                 let items = self
                     .auth
                     .playlist_items_manual(&playlist.id, None, None, Some(1), None)
-                    .await
-                    .unwrap();
+                    .await;
+
+                if items.is_err() { return MusicObject::new(); }
+
+                let items = items.unwrap();
 
                 let first_id = items
                     .items
