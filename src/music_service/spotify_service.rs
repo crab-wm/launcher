@@ -1,6 +1,7 @@
 //COMMAND TO RUN: spotify --uri="spotify:track:<TRACK>?context=spotify:playlist:<PLAYLIST>"
 
 use std::default::Default;
+use std::fs;
 
 use async_trait::async_trait;
 use futures::future::join_all;
@@ -30,6 +31,12 @@ pub struct SpotifyService {
 
 impl SpotifyService {
     pub fn new() -> Self {
+        Self {
+            auth: Self::get_auth()
+        }
+    }
+
+    pub fn get_auth() -> AuthCodePkceSpotify {
         let client_id = dotenv!("SPOTIFY_CLIENT_ID");
         let client_secret = dotenv!("SPOTIFY_CLIENT_SECRET");
         let redirect_uri = dotenv!("SPOTIFY_REDIRECT_URI");
@@ -52,9 +59,21 @@ impl SpotifyService {
             ..Default::default()
         };
 
-        Self {
-            auth: AuthCodePkceSpotify::with_config(credentials, oauth, config)
-        }
+        AuthCodePkceSpotify::with_config(credentials, oauth, config)
+    }
+
+    pub async fn regenerate_auth(&mut self) {
+        let data_dir = dirs::data_local_dir().unwrap();
+        let data_dir = data_dir.to_str().unwrap();
+
+        let _ = fs::remove_file(format!("{}{}", data_dir, DATA_MUSIC_SPOTIFY_CACHE_FILE));
+
+        let mut auth = SpotifyService::get_auth();
+
+        let url = auth.get_authorize_url(None).unwrap();
+        auth.prompt_for_token(url.as_str()).await.unwrap();
+
+        self.auth = auth;
     }
 }
 
@@ -62,13 +81,27 @@ impl SpotifyService {
 impl MusicServiceExt for SpotifyService {
     async fn get_all_playlists(&mut self) -> Vec<MusicObject> {
         let url = self.auth.get_authorize_url(None).unwrap();
-        self.auth.prompt_for_token(url.as_str()).await.unwrap();
+        let auth_token_request = self.auth.prompt_for_token(url.as_str()).await;
 
-        let playlists = self
+        if auth_token_request.is_err() {
+            self.regenerate_auth().await;
+        }
+
+        let mut playlists = self
             .auth
             .current_user_playlists_manual(Some(50), None)
-            .await
-            .unwrap();
+            .await;
+
+        if playlists.is_err() {
+            self.regenerate_auth().await;
+
+            playlists = self
+                .auth
+                .current_user_playlists_manual(Some(50), None)
+                .await;
+        }
+
+        let playlists = playlists.unwrap();
 
         let playlists = playlists
             .items
