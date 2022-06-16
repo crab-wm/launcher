@@ -106,8 +106,12 @@ music:
 
 ## Usage
 This section contains all the available options for running `crab-launcher`.
-- `--generate-config` - Generates configuration file and saves it in the default app directory. After finishing its work, it outputs the file location.
-- `--fetch` - Generates temporary file containing all user's playlists for the selected service in config file. Make sure you fill in all the fields in config's music section.
+- `--generate-config` - Generates configuration file and saves it in the default app directory. After finishing its
+  work, it outputs the file location.
+- `--refresh-config` - Reloads the configuration file into the app. Changes all the configured things while keeping
+  daemon service running.
+- `--fetch` - Generates temporary file containing all user's playlists for the selected service in config file. Make
+  sure you fill in all the fields in config's music section.
 - `--show` - Shows the launcher window. Will work only if daemon service is running in the background.
 - `--run` - Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched
   automatically (if config set up). To fetch them, use `--fetch` option before.

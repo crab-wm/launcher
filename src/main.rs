@@ -59,9 +59,9 @@ async fn main() {
     if let Some(arg) = arg {
         match arg.as_str() {
             "--generate-config" => generate_config(),
+            "--refresh-config" => emit_daemon_method(CrabDaemonMethod::RefreshConfig),
             "--fetch" => fetch_playlists(true).await,
             "--show" => emit_daemon_method(CrabDaemonMethod::ShowWindow),
-            "--refresh-config" => emit_daemon_method(CrabDaemonMethod::RefreshConfig),
             "--run" => run_standalone(),
             "--daemon" => run_daemon().await,
             "--help" => show_help(),
@@ -277,6 +277,7 @@ async fn fetch_playlists(should_force_fetch_playlists: bool) {
 fn show_help() {
     let usage_commands_list = vec![
         ("--generate-config    ", "Generates configuration file and saves it in the default app directory. After finishing its work, it outputs the file location."),
+        ("--refresh-config     ", "Reloads the configuration file into the app. Changes all the configured things while keeping daemon service running."),
         ("--fetch              ", "Generates temporary file containing all user's playlists for the selected service in config file. Make sure you fill in all the fields in config's music section."),
         ("--show               ", "Shows the launcher window. Will work only if daemon service is running in the background."),
         ("--run                ", "Runs the standalone version of the launcher. Startup time will be longer and playlists won't be fetched automatically (if config set up). To fetch them, use --fetch option before."),
