@@ -1,17 +1,20 @@
-use crate::consts::*;
-use crate::gio::glib::Sender;
+use std::process::exit;
+use std::str::FromStr;
+
 use gtk::gio;
 use gtk::gio::{
     BusNameOwnerFlags, BusNameWatcherFlags, BusType, DBusConnection, DBusMessage,
     DBusMethodInvocation, DBusNodeInfo, DBusSendMessageFlags, OwnerId,
 };
 use gtk::glib::{MainLoop, Variant, VariantTy};
-use std::process::exit;
-use std::str::FromStr;
 
-#[derive(Copy, Clone)]
+use crate::consts::*;
+use crate::gio::glib::Sender;
+
+#[derive(Copy, Clone, Debug)]
 pub enum CrabDaemonMethod {
     ShowWindow,
+    RefreshConfig,
 }
 
 impl FromStr for CrabDaemonMethod {
@@ -20,6 +23,7 @@ impl FromStr for CrabDaemonMethod {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "ShowWindow" => Ok(Self::ShowWindow),
+            "RefreshConfig" => Ok(Self::RefreshConfig),
             _ => Err(()),
         }
     }
@@ -29,6 +33,7 @@ impl ToString for CrabDaemonMethod {
     fn to_string(&self) -> String {
         match self {
             CrabDaemonMethod::ShowWindow => "ShowWindow",
+            CrabDaemonMethod::RefreshConfig => "RefreshConfig",
         }
         .into()
     }
@@ -41,7 +46,7 @@ impl CrabDaemonServer {
         Self
     }
 
-    pub fn start(&self, tx: Sender<bool>) -> OwnerId {
+    pub fn start(&self, tx: Sender<CrabDaemonMethod>) -> OwnerId {
         gio::bus_own_name(
             BusType::Session,
             DBUS_SESSION_NAME,
@@ -60,14 +65,12 @@ impl CrabDaemonServer {
         method_name: &str,
         _parameters: Variant,
         _invocation: DBusMethodInvocation,
-        tx: Sender<bool>,
+        tx: Sender<CrabDaemonMethod>,
     ) {
         let method = CrabDaemonMethod::from_str(method_name);
 
         if let Ok(method) = method {
-            match method {
-                CrabDaemonMethod::ShowWindow => tx.send(true).unwrap(),
-            }
+            tx.send(method).unwrap();
         }
     }
 
@@ -92,15 +95,18 @@ impl CrabDaemonServer {
         true
     }
 
-    fn on_bus_acquired(connection: DBusConnection, _name: &str, tx: Sender<bool>) {
+    fn on_bus_acquired(connection: DBusConnection, _name: &str, tx: Sender<CrabDaemonMethod>) {
         let introspection_xml = format!(
             "\
             <node>\
               <interface name='{}'>\
-                <method name='ShowWindow'/>\
+                <method name='{}'/>\
+                <method name='{}'/>\
               </interface>\
             </node>",
-            DBUS_INTERFACE_NAME
+            DBUS_INTERFACE_NAME,
+            CrabDaemonMethod::ShowWindow.to_string(),
+            CrabDaemonMethod::RefreshConfig.to_string(),
         );
 
         let introspection_data = DBusNodeInfo::for_xml(&introspection_xml).unwrap();

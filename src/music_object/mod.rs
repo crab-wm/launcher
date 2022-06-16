@@ -33,18 +33,14 @@ impl MusicObject {
 
         music_data.borrow().first_id.as_ref()?;
 
-        match music_data.borrow().service {
-            ConfigMusicService::Youtube => Some(
-                MUSIC_YOUTUBE_URL
-                    .replace("{VIDEO_ID}", &music_data.borrow().first_id.clone().unwrap())
-                    .replace("{LIST_ID}", &music_data.borrow().id.clone()),
-            ),
-            ConfigMusicService::Spotify => Some(
-                MUSIC_SPOFITY_URL
-                    .replace("{TRACK_ID}", &music_data.borrow().first_id.clone().unwrap())
-                    .replace("{LIST_ID}", &music_data.borrow().id.clone()),
-            ),
-        }
+        let url = match music_data.borrow().service {
+            ConfigMusicService::Youtube => MUSIC_YOUTUBE_URL,
+            ConfigMusicService::Spotify => MUSIC_SPOFITY_URL,
+        };
+
+        Some(url
+            .replace("{TRACK_ID}", &music_data.borrow().first_id.clone().unwrap())
+            .replace("{LIST_ID}", &music_data.borrow().id.clone()))
     }
 
     pub fn start_playing(&self) {

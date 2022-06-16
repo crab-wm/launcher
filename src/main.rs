@@ -12,6 +12,7 @@ use std::sync::Mutex;
 use gtk::{CssProvider, gio, StyleContext};
 use gtk::Application;
 use gtk::gdk::Display;
+use gtk::glib;
 use gtk::glib::{clone, MainContext, MainLoop, PRIORITY_DEFAULT, Receiver};
 use gtk::prelude::*;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
@@ -59,7 +60,8 @@ async fn main() {
         match arg.as_str() {
             "--generate-config" => generate_config(),
             "--fetch" => fetch_playlists(true).await,
-            "--show" => emit_show_window(),
+            "--show" => emit_daemon_method(CrabDaemonMethod::ShowWindow),
+            "--refresh-config" => emit_daemon_method(CrabDaemonMethod::RefreshConfig),
             "--run" => run_standalone(),
             "--daemon" => run_daemon().await,
             "--help" => show_help(),
@@ -79,7 +81,10 @@ async fn main() {
 fn load_css() {
     let provider = CssProvider::new();
 
-    CONFIG.lock().unwrap().apply(&provider);
+    let config = CONFIG.lock().unwrap();
+
+    provider
+        .load_from_data(&*[config.get_styles().as_bytes(), include_bytes!("resources/style.css")].concat());
 
     StyleContext::add_provider_for_display(
         &Display::default().expect(ERROR_DISPLAY),
@@ -88,7 +93,7 @@ fn load_css() {
     );
 }
 
-fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<Receiver<bool>>>>>) {
+async fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<Receiver<CrabDaemonMethod>>>>>) {
     let window = Window::new(app, rx.is_some());
 
     if rx.is_some() {
@@ -99,12 +104,33 @@ fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<R
         if let Some(rx) = rx.take() {
             rx.attach(
                 None,
-                clone!(@strong window => move |_| {
-                    window.present();
-                    window.clean_up();
+                clone!(@strong window => move |event| {
+                     let main_context = MainContext::default();
+
+                     main_context.spawn_local(clone!(@strong window, @strong event => async move {
+                        match event {
+                            CrabDaemonMethod::ShowWindow => {
+                                window.present();
+                                window.clean_up();
+                            }
+                            CrabDaemonMethod::RefreshConfig => {
+                                let mut config = CONFIG.lock().unwrap();
+                                config.refresh();
+                                drop(config);
+
+                                load_css();
+
+                                let mut temp_data = TEMP_DATA.lock().unwrap();
+                                temp_data.refresh();
+                                drop(temp_data);
+
+                                fetch_playlists(false).await;
+                            }
+                        }
+                    }));
 
                     Continue(true)
-                }),
+                 }),
             );
         }
     }
@@ -114,9 +140,9 @@ fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<R
     }
 }
 
-fn emit_show_window() {
+fn emit_daemon_method(method: CrabDaemonMethod) {
     let crab_daemon = CrabDaemonClient::new();
-    crab_daemon.run_method(CrabDaemonMethod::ShowWindow);
+    crab_daemon.run_method(method);
 }
 
 fn generate_config() {
@@ -157,13 +183,19 @@ async fn run_daemon() {
     gio::resources_register_include!("crab-launcher.gresource").expect(ERROR_RESOURCES);
 
     let crab_daemon = CrabDaemonServer::new();
-    let (tx, rx) = MainContext::channel::<bool>(PRIORITY_DEFAULT);
+    let (tx, rx) = MainContext::channel::<CrabDaemonMethod>(PRIORITY_DEFAULT);
     let rx = Rc::new(RefCell::new(Some(rx)));
 
     let app = Application::builder().application_id(APP_ID).build();
 
     app.connect_startup(|_| load_css());
-    app.connect_activate(move |app| build_ui(app, false, Some(rx.clone())));
+    app.connect_activate(move |app| {
+        let main_context = MainContext::default();
+
+        main_context.spawn_local(clone!(@weak app, @weak rx => async move {
+            build_ui(&app, false, Some(rx.clone())).await;
+        }));
+    });
 
     let owner_id = crab_daemon.start(tx);
 
@@ -179,7 +211,13 @@ fn run_standalone() {
     let app = Application::builder().application_id(APP_ID).build();
 
     app.connect_startup(|_| load_css());
-    app.connect_activate(|app| build_ui(app, true, None));
+    app.connect_activate(move |app| {
+        let main_context = MainContext::default();
+
+        main_context.spawn_local(clone!(@weak app => async move {
+            build_ui(&app, true, None).await;
+        }));
+    });
 
     app.run_with_args::<&str>(&[]);
 }

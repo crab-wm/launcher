@@ -95,7 +95,7 @@ colors:
   secondary_text: "#989A9E"
   accent: "#62AEEF"
 
-# Sets opacity for the title bar and bottom of the app
+# Sets opacity for the entire app
 opacity: 1.0
 
 # Optional settings for the `music` section of the launcher

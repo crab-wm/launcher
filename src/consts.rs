@@ -35,7 +35,7 @@ colors:
   secondary_text: \"#989A9E\"
   accent: \"#62AEEF\"
 
-# Sets opacity for the title bar and bottom of the app
+# Sets opacity for the entire app
 opacity: 1.0
 
 # Optional settings for the `music` section of the launcher
@@ -69,7 +69,7 @@ pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
 pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";
 
 pub const MUSIC_YOUTUBE_URL: &str =
-    "https://www.youtube.com/watch?v={VIDEO_ID}&list={LIST_ID}";
+    "https://www.youtube.com/watch?v={TRACK_ID}&list={LIST_ID}";
 pub const MUSIC_SPOFITY_URL: &str =
     "spotify:track:{TRACK_ID}?context={LIST_ID}";
 

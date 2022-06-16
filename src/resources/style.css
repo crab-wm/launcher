@@ -32,7 +32,7 @@ entry image.right:active {
 }
 
 listview {
-    background: @bg-color;
+    background-color: transparent;
 }
 
 label {
@@ -42,14 +42,14 @@ label {
 row > box {
     margin: 5px 0;
     font-size: 15px;
-    border-left: 7px @bg-color solid;
+    border-left: 7px transparent solid;
     padding-left: 15px;
 }
 
 row {
     outline: none;
     border: none;
-    background: @bg-color;
+    background-color: transparent;
     margin: 0;
     padding: 0;
 }

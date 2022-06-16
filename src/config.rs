@@ -1,6 +1,5 @@
 use std::fs;
 
-use gtk::CssProvider;
 use serde::{Deserialize, Serialize};
 
 use crate::consts::*;
@@ -43,6 +42,47 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Self {
+        Self::get_config()
+    }
+
+    pub fn refresh(&mut self) {
+        let config = Self::get_config();
+
+        self.colors = config.colors;
+        self.music = config.music;
+        self.opacity = config.opacity;
+    }
+
+    pub fn get_styles(&self) -> String {
+        let mut opacity = self.opacity.unwrap_or(1.);
+
+        opacity = if !(0...=1.).contains(&opacity) {
+            1.
+        } else {
+            opacity
+        };
+
+        let style = format!(
+            "
+            @define-color bg-color alpha({}, {});
+            @define-color bg-secondary-color alpha({}, {});
+            @define-color text-secondary-color {};
+            @define-color text-color {};
+            @define-color accent-color {};
+        ",
+            self.colors.bg,
+            opacity,
+            self.colors.secondary_bg,
+            opacity,
+            self.colors.secondary_text,
+            self.colors.text,
+            self.colors.accent
+        );
+
+        style
+    }
+
+    fn get_config() -> Self {
         let config_dir = dirs::config_dir().unwrap();
         let config_dir = config_dir.as_os_str().to_str().unwrap();
 
@@ -84,35 +124,5 @@ impl Config {
         }
 
         config.unwrap()
-    }
-
-    pub fn apply(&self, provider: &CssProvider) {
-        let mut opacity = self.opacity.unwrap_or(1.);
-
-        opacity = if !(0. ..=1.).contains(&opacity) {
-            1.
-        } else {
-            opacity
-        };
-
-        let style = format!(
-            "
-            @define-color bg-color alpha({}, {});
-            @define-color bg-secondary-color alpha({}, {});
-            @define-color text-secondary-color {};
-            @define-color text-color {};
-            @define-color accent-color {};
-        ",
-            self.colors.bg,
-            opacity,
-            self.colors.secondary_bg,
-            opacity,
-            self.colors.secondary_text,
-            self.colors.text,
-            self.colors.accent
-        );
-
-        provider
-            .load_from_data(&*[style.as_bytes(), include_bytes!("resources/style.css")].concat());
     }
 }
