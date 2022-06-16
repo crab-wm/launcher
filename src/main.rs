@@ -223,22 +223,27 @@ fn run_standalone() {
 }
 
 async fn fetch_playlists(should_force_fetch_playlists: bool) {
-    let config = CONFIG.lock().unwrap();
-
-    if config.music.is_none() { return; }
-
     let data_dir = dirs::data_local_dir().unwrap();
     let data_dir = data_dir.to_str().unwrap();
 
-    fs::create_dir_all(format!("{}{}", data_dir, DATA_DIR)).unwrap();
+    let service = {
+        let config = CONFIG.lock().unwrap();
 
-    let service = &config.music.as_ref().unwrap().service;
+        if config.music.is_none() { return; }
 
-    // Do not fetch playlists if service does not support ignoring auth
-    match (service, should_force_fetch_playlists) {
-        (ConfigMusicService::Youtube, false) => return,
-        _ => {}
-    }
+        fs::create_dir_all(format!("{}{}", data_dir, DATA_DIR)).unwrap();
+
+        let service = config.music.as_ref().unwrap().service.clone();
+
+        // Do not fetch playlists if service does not support ignoring auth
+        #[allow(clippy::single_match)]
+        match (&service, should_force_fetch_playlists) {
+            (ConfigMusicService::Youtube, false) => return,
+            _ => {}
+        }
+
+        service
+    };
 
     let mut service: Box<dyn MusicServiceExt> = match service {
         ConfigMusicService::Youtube => Box::new(YoutubeService::new().await),
@@ -250,6 +255,8 @@ async fn fetch_playlists(should_force_fetch_playlists: bool) {
         .iter()
         .map(|music_object| music_object.imp().data.take())
         .collect::<Vec<MusicData>>());
+
+    let config = CONFIG.lock().unwrap();
 
     serde_json::to_writer(
         &File::create(format!(

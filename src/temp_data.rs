@@ -39,7 +39,7 @@ impl TempData {
             return vec![];
         }
 
-        serde_json::from_reader::<_, Vec<MusicData>>(data_file.unwrap()).unwrap_or(vec![])
+        serde_json::from_reader::<_, Vec<MusicData>>(data_file.unwrap()).unwrap_or_default()
     }
 
     pub fn refresh(&mut self) {

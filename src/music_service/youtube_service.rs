@@ -128,7 +128,7 @@ impl MusicServiceExt for YoutubeService {
             music_object.imp().data.replace(MusicData {
                 id: playlist.id.as_ref().unwrap().clone(),
                 title: playlist.snippet.as_ref().unwrap().title.as_ref().unwrap().clone(),
-                first_id: first_item.clone(),
+                first_id: first_item,
                 service: ConfigMusicService::Youtube,
             });
 

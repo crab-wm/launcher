@@ -56,7 +56,7 @@ impl Config {
     pub fn get_styles(&self) -> String {
         let mut opacity = self.opacity.unwrap_or(1.);
 
-        opacity = if !(0...=1.).contains(&opacity) {
+        opacity = if !((0.)..=1.).contains(&opacity) {
             1.
         } else {
             opacity
