@@ -83,8 +83,13 @@ fn load_css() {
 
     let config = CONFIG.lock().unwrap();
 
-    provider
-        .load_from_data(&*[config.get_styles().as_bytes(), include_bytes!("resources/style.css")].concat());
+    provider.load_from_data(
+        &*[
+            config.get_styles().as_bytes(),
+            include_bytes!("resources/style.css"),
+        ]
+            .concat(),
+    );
 
     StyleContext::add_provider_for_display(
         &Display::default().expect(ERROR_DISPLAY),
@@ -93,7 +98,11 @@ fn load_css() {
     );
 }
 
-async fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Option<Receiver<CrabDaemonMethod>>>>>) {
+async fn build_ui(
+    app: &Application,
+    show_window: bool,
+    rx: Option<Rc<RefCell<Option<Receiver<CrabDaemonMethod>>>>>,
+) {
     let window = Window::new(app, rx.is_some());
 
     if rx.is_some() {
@@ -105,32 +114,32 @@ async fn build_ui(app: &Application, show_window: bool, rx: Option<Rc<RefCell<Op
             rx.attach(
                 None,
                 clone!(@strong window => move |event| {
-                     let main_context = MainContext::default();
+                    let main_context = MainContext::default();
 
-                     main_context.spawn_local(clone!(@strong window, @strong event => async move {
-                        match event {
-                            CrabDaemonMethod::ShowWindow => {
-                                window.present();
-                                window.clean_up();
-                            }
-                            CrabDaemonMethod::RefreshConfig => {
-                                let mut config = CONFIG.lock().unwrap();
-                                config.refresh();
-                                drop(config);
+                    main_context.spawn_local(clone!(@strong window, @strong event => async move {
+                       match event {
+                           CrabDaemonMethod::ShowWindow => {
+                               window.present();
+                               window.clean_up();
+                           }
+                           CrabDaemonMethod::RefreshConfig => {
+                               let mut config = CONFIG.lock().unwrap();
+                               config.refresh();
+                               drop(config);
 
-                                load_css();
+                               load_css();
 
-                                let mut temp_data = TEMP_DATA.lock().unwrap();
-                                temp_data.refresh();
-                                drop(temp_data);
+                               let mut temp_data = TEMP_DATA.lock().unwrap();
+                               temp_data.refresh();
+                               drop(temp_data);
 
-                                fetch_playlists(false).await;
-                            }
-                        }
-                    }));
+                               fetch_playlists(false).await;
+                           }
+                       }
+                   }));
 
-                    Continue(true)
-                 }),
+                   Continue(true)
+                }),
             );
         }
     }
@@ -229,7 +238,9 @@ async fn fetch_playlists(should_force_fetch_playlists: bool) {
     let service = {
         let config = CONFIG.lock().unwrap();
 
-        if config.music.is_none() { return; }
+        if config.music.is_none() {
+            return;
+        }
 
         fs::create_dir_all(format!("{}{}", data_dir, DATA_DIR)).unwrap();
 

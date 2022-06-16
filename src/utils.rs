@@ -8,7 +8,10 @@ use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 
-use crate::{DATA_MUSIC_SPOTIFY_TEMP_FILE, DATA_MUSIC_YOUTUBE_TEMP_FILE, MusicData, PLACEHOLDER_MUSIC, PLACEHOLDER_PROGRAMS, TEMP_DATA, Window};
+use crate::{
+    DATA_MUSIC_SPOTIFY_TEMP_FILE, DATA_MUSIC_YOUTUBE_TEMP_FILE, MusicData, PLACEHOLDER_MUSIC,
+    PLACEHOLDER_PROGRAMS, TEMP_DATA, Window,
+};
 use crate::config::{ConfigMusic, ConfigMusicService};
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;

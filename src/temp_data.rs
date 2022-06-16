@@ -16,7 +16,7 @@ impl Default for TempData {
 impl TempData {
     pub fn new() -> Self {
         Self {
-            playlists: Self::get_playlists()
+            playlists: Self::get_playlists(),
         }
     }
 

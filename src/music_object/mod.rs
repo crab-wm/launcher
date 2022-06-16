@@ -38,9 +38,10 @@ impl MusicObject {
             ConfigMusicService::Spotify => MUSIC_SPOFITY_URL,
         };
 
-        Some(url
-            .replace("{TRACK_ID}", &music_data.borrow().first_id.clone().unwrap())
-            .replace("{LIST_ID}", &music_data.borrow().id.clone()))
+        Some(
+            url.replace("{TRACK_ID}", &music_data.borrow().first_id.clone().unwrap())
+                .replace("{LIST_ID}", &music_data.borrow().id.clone()),
+        )
     }
 
     pub fn start_playing(&self) {
@@ -50,10 +51,13 @@ impl MusicObject {
         match music_data.borrow().service {
             ConfigMusicService::Youtube => {
                 Command::new("xdg-open").arg(action_uri).spawn().unwrap();
-            },
+            }
             ConfigMusicService::Spotify => {
-                Command::new("spotify").arg(format!("--uri={}", &action_uri)).spawn().unwrap();
-            },
+                Command::new("spotify")
+                    .arg(format!("--uri={}", &action_uri))
+                    .spawn()
+                    .unwrap();
+            }
         }
     }
 }

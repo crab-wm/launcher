@@ -68,10 +68,8 @@ pub const MAX_CHARS_IN_ROW: usize = 32;
 pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
 pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";
 
-pub const MUSIC_YOUTUBE_URL: &str =
-    "https://www.youtube.com/watch?v={TRACK_ID}&list={LIST_ID}";
-pub const MUSIC_SPOFITY_URL: &str =
-    "spotify:track:{TRACK_ID}?context={LIST_ID}";
+pub const MUSIC_YOUTUBE_URL: &str = "https://www.youtube.com/watch?v={TRACK_ID}&list={LIST_ID}";
+pub const MUSIC_SPOFITY_URL: &str = "spotify:track:{TRACK_ID}?context={LIST_ID}";
 
 #[cfg(debug_assertions)]
 pub const DBUS_SESSION_NAME: &str = "wm.crab.GDBus.LauncherServerDebug";

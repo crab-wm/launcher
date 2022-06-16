@@ -27,7 +27,7 @@ impl<T> Flatten<T> for Option<Option<T>> {
 
 pub struct SpotifyService {
     auth: AuthCodePkceSpotify,
-    should_force_fetch: bool
+    should_force_fetch: bool,
 }
 
 impl SpotifyService {
@@ -57,7 +57,9 @@ impl SpotifyService {
         let config = Config {
             token_cached,
             token_refreshing: true,
-            cache_path: format!("{}{}", data_dir, DATA_MUSIC_SPOTIFY_CACHE_FILE).parse().unwrap(),
+            cache_path: format!("{}{}", data_dir, DATA_MUSIC_SPOTIFY_CACHE_FILE)
+                .parse()
+                .unwrap(),
             ..Default::default()
         };
 
@@ -83,8 +85,7 @@ impl SpotifyService {
     }
 
     async fn get_playlists(&self) -> ClientResult<Page<SimplifiedPlaylist>> {
-        self
-            .auth
+        self.auth
             .current_user_playlists_manual(Some(50), None)
             .await
     }
@@ -95,16 +96,19 @@ impl MusicServiceExt for SpotifyService {
     async fn get_all_playlists(&mut self) -> Vec<MusicObject> {
         let url = self.auth.get_authorize_url(None).unwrap();
         let mut token_cache = self.auth.read_token_cache(false).await;
-        let token_cache_error = token_cache.is_err() || token_cache.as_ref().unwrap_or(&None).is_none();
+        let token_cache_error =
+            token_cache.is_err() || token_cache.as_ref().unwrap_or(&None).is_none();
 
-        if token_cache_error && !self.should_force_fetch { return vec![]; }
+        if token_cache_error && !self.should_force_fetch {
+            return vec![];
+        }
 
         if token_cache_error && self.should_force_fetch {
             let mut regen_request = self.regenerate_auth().await;
 
             while regen_request.is_err() {
                 regen_request = self.regenerate_auth().await;
-            };
+            }
 
             token_cache = self.auth.read_token_cache(false).await;
         }
@@ -114,7 +118,9 @@ impl MusicServiceExt for SpotifyService {
         let mut playlists = self.get_playlists().await;
 
         if playlists.is_err() {
-            if !self.should_force_fetch { return vec![]; }
+            if !self.should_force_fetch {
+                return vec![];
+            }
 
             let mut token_request = self.auth.prompt_for_token(url.as_str()).await;
 
@@ -129,52 +135,50 @@ impl MusicServiceExt for SpotifyService {
 
                 while regen_request.is_err() {
                     regen_request = self.regenerate_auth().await;
-                };
+                }
 
                 playlists = self.get_playlists().await;
             }
         }
 
-        if playlists.is_err() { return vec![]; }
+        if playlists.is_err() {
+            return vec![];
+        }
 
         let playlists = playlists.unwrap();
 
-        let playlists = playlists
-            .items
-            .iter()
-            .map(|playlist| async {
-                let items = self
-                    .auth
-                    .playlist_items_manual(&playlist.id, None, None, Some(1), None)
-                    .await;
+        let playlists = playlists.items.iter().map(|playlist| async {
+            let items = self
+                .auth
+                .playlist_items_manual(&playlist.id, None, None, Some(1), None)
+                .await;
 
-                if items.is_err() { return MusicObject::new(); }
+            if items.is_err() {
+                return MusicObject::new();
+            }
 
-                let items = items.unwrap();
+            let items = items.unwrap();
 
-                let first_id = items
-                    .items
-                    .first()
-                    .map(|first_item|
-                        first_item
-                            .track
-                            .as_ref()
-                            .map(move |first_track| first_track.id())
-                    );
-
-                let first_id = first_id.flatten().flatten();
-
-                let music_object = MusicObject::new();
-
-                music_object.imp().data.replace(MusicData {
-                    id: playlist.id.to_string(),
-                    title: playlist.name.clone(),
-                    first_id: first_id.map(|first_id| first_id.id().to_string()),
-                    service: ConfigMusicService::Spotify,
-                });
-
-                music_object
+            let first_id = items.items.first().map(|first_item| {
+                first_item
+                    .track
+                    .as_ref()
+                    .map(move |first_track| first_track.id())
             });
+
+            let first_id = first_id.flatten().flatten();
+
+            let music_object = MusicObject::new();
+
+            music_object.imp().data.replace(MusicData {
+                id: playlist.id.to_string(),
+                title: playlist.name.clone(),
+                first_id: first_id.map(|first_id| first_id.id().to_string()),
+                service: ConfigMusicService::Spotify,
+            });
+
+            music_object
+        });
 
         join_all(playlists).await
     }
