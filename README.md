@@ -10,22 +10,56 @@ After downloading the binary generate default config file and copy it to `~/.con
 
 To generate the config file, run `crab-launcher --generate-config`.
 
-***NOTE: Make sure you have `crab-launcher` in your path.*** 
+***NOTE: Make sure you have `crab-launcher` in your path.***
 
 After generating config file you have two options:
+
 - run standalone version: `crab-launcher --run`
 - run daemon and show window if you want to: `crab-launcher --daemon`, `crab-launcher --show`
+
+You made it!
+
+### Daemon
+
+If you want to run daemon, make sure you set it to autostart on your system. Then, to run launcher you will only need to
+run `crab-launcher --show`.
+
+## Music
+
+Crab Launcher has the ability tu play playlists fetched from your YouTube or Spotify account. To enable this option,
+choose your favourite music service and put it in `music.service` section inside of the config file.
 
 To fetch playlists use `crab-launcher --fetch`. It's going to read config file and fetch playlists with given
 informations and for the
 given service. **You should run this at least once before running the launcher for the first time.**
 
-You made it!
+### 1. Spotify
 
-### Daemon
-If you want to run daemon, make sure you set it to autostart on your system. Then, to run launcher you will only need to run `crab-launcher --show`.
+#### How to sign in?
+
+After running the `crab-launcher --fetch` command, browser window will pop up and you will have to sign in to your
+Spotify account. After signing in, you'll have to copy the url from your browser and paste it inside of the terminal
+emulator.
+
+#### How does it work?
+
+Spotify will fetch your playlists every time you run the daemon service (unless the session finishes). If your playlists
+are not up to date, it means you have to run `crab-launcher --fetch` command again.
+
+### 2. YouTube
+
+#### How to sign in?
+
+After running the `crab-launcher --fetch` command, browser window will pop up and you will have to sign in to your
+Youtube account. After signing in, you'll be prompted to close the window.
+
+#### How does it work?
+
+YouTube will fetch playlists only if you run the `crab-launcher --fetch` command. If your playlists are not up to date,
+you have to run the command again.
 
 ## Screenshots
+
 Here are some screenshots of this app.
 
 |                                                    Default config                                                    |                                                  Light mode config                                                   |                                                     Color config                                                     |
@@ -66,10 +100,8 @@ opacity: 1.0
 
 # Optional settings for the `music` section of the launcher
 music:
-  account_id: ""
   # Currently available options: `youtube`, `spotify`
   service: "youtube"
-  api_key: ""
 ```
 
 ## Usage

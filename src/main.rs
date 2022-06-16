@@ -194,8 +194,16 @@ async fn fetch_playlists(should_force_fetch_playlists: bool) {
 
     fs::create_dir_all(format!("{}{}", data_dir, DATA_DIR)).unwrap();
 
-    let mut service: Box<dyn MusicServiceExt> = match config.music.as_ref().unwrap().service {
-        ConfigMusicService::Youtube => Box::new(YoutubeService::new(should_force_fetch_playlists).await),
+    let service = &config.music.as_ref().unwrap().service;
+
+    // Do not fetch playlists if service does not support ignoring auth
+    match (service, should_force_fetch_playlists) {
+        (ConfigMusicService::Youtube, false) => return,
+        _ => {}
+    }
+
+    let mut service: Box<dyn MusicServiceExt> = match service {
+        ConfigMusicService::Youtube => Box::new(YoutubeService::new().await),
         ConfigMusicService::Spotify => Box::new(SpotifyService::new(should_force_fetch_playlists)),
     };
 
@@ -211,10 +219,14 @@ async fn fetch_playlists(should_force_fetch_playlists: bool) {
             data_dir,
             get_temp_music_file_path(config.music.as_ref()).unwrap()
         ))
-        .unwrap(),
+            .unwrap(),
         &playlists,
     )
-    .unwrap();
+        .unwrap();
+
+    if should_force_fetch_playlists {
+        println!("{}", PLAYLISTS_FETCHED);
+    }
 }
 
 fn show_help() {

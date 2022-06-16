@@ -17,19 +17,17 @@ use crate::music_object::MusicObject;
 use crate::music_service::MusicServiceExt;
 
 pub struct YoutubeService {
-    hub: YouTube,
-    should_force_fetch: bool,
+    hub: Option<YouTube>,
 }
 
 impl YoutubeService {
-    pub async fn new(should_force_fetch: bool) -> Self {
+    pub async fn new() -> Self {
         Self {
             hub: Self::get_hub(false).await,
-            should_force_fetch,
         }
     }
 
-    async fn get_hub(remove_cache: bool) -> YouTube {
+    async fn get_hub(remove_cache: bool) -> Option<YouTube> {
         let data_dir = dirs::data_local_dir().unwrap();
         let data_dir = data_dir.to_str().unwrap();
 
@@ -62,7 +60,7 @@ impl YoutubeService {
             display_err(ERROR_AUTH);
         }
 
-        YouTube::new(
+        Some(YouTube::new(
             Client::builder().build(
                 HttpsConnectorBuilder::new()
                     .with_native_roots()
@@ -72,12 +70,16 @@ impl YoutubeService {
                     .build()
             ),
             auth.unwrap(),
-        )
+        ))
     }
 
     async fn get_playlists(&self) -> Result<(Response<Body>, PlaylistListResponse), Error> {
+        if self.hub.is_none() { return Err(Error::Cancelled); }
+
         self
             .hub
+            .as_ref()
+            .unwrap()
             .playlists()
             .list(&vec!["id".into(), "snippet".into()])
             .mine(true)
@@ -92,26 +94,21 @@ impl MusicServiceExt for YoutubeService {
         let mut playlists = self.get_playlists().await;
 
         if playlists.is_err() {
-            if !self.should_force_fetch {
-                return vec![];
-            }
-
             self.hub = Self::get_hub(true).await;
             playlists = self.get_playlists().await;
         }
 
         let (_, playlists) = playlists.unwrap();
-        if playlists.items.is_none() {
-            {
-                dbg!("CCC");
-                return vec![];
-            }
-        }
+        if playlists.items.is_none() { return vec![]; }
         let playlists = playlists.items.unwrap();
 
         let playlists = playlists.iter().map(|playlist| async {
+            if self.hub.is_none() { return MusicObject::new(); }
+
             let playlist_items = self
                 .hub
+                .as_ref()
+                .unwrap()
                 .playlist_items()
                 .list(&vec!["snippet".into()])
                 .playlist_id(playlist.id.as_ref().unwrap().as_str())

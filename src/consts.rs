@@ -40,10 +40,8 @@ opacity: 1.0
 
 # Optional settings for the `music` section of the launcher
 music:
-  account_id: \"\"
   # Currently available options: `youtube`, `spotify`
   service: \"youtube\"
-  api_key: \"\"
 ";
 
 pub const ERROR_DAEMON: &str =
@@ -54,6 +52,8 @@ pub const ERROR_ITEMS: &str = "Could not get current items.";
 pub const ERROR_AUTH: &str = "Could not authenticate.";
 pub const ERROR_MISSING_CONFIG: &str = "Could not find configuration file for the application. Make sure you have a `~/.config/crab/launcher_def.yaml` file. If you don't have it, run `crab-launcher --generate-config`";
 pub const ERROR_BAD_CONFIG: &str = "Could not read configuration file. Make sure you have a `~/.config/crab/launcher_def.yaml` file and it's properly formatted.";
+
+pub const PLAYLISTS_FETCHED: &str = "Fetched your playlists!";
 
 pub const KEY_UP_ARROW: u32 = 111;
 pub const KEY_DOWN_ARROW: u32 = 116;
