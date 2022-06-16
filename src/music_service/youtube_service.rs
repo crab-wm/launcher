@@ -14,9 +14,7 @@ use gtk::subclass::prelude::ObjectSubclassIsExt;
 use hyper::{Body, Client, Response};
 use hyper_rustls::HttpsConnectorBuilder;
 
-use crate::{
-    ConfigMusicService, DATA_MUSIC_YOUTUBE_CACHE_FILE, display_err, ERROR_AUTH, MusicData,
-};
+use crate::{ConfigMusicService, DATA_MUSIC_YOUTUBE_CACHE_FILE, display_err, ERROR_AUTH, MusicData, TEMP_DATA};
 use crate::music_object::MusicObject;
 use crate::music_service::MusicServiceExt;
 
@@ -97,6 +95,8 @@ impl YoutubeService {
 #[async_trait(?Send)]
 impl MusicServiceExt for YoutubeService {
     async fn get_all_playlists(&mut self) -> Vec<MusicObject> {
+        let old_playlists = &TEMP_DATA.lock().unwrap().get_playlists_objs();
+
         let mut playlists = self.get_playlists().await;
 
         if playlists.is_err() {
@@ -106,7 +106,7 @@ impl MusicServiceExt for YoutubeService {
 
         let (_, playlists) = playlists.unwrap();
         if playlists.items.is_none() {
-            return vec![];
+            return old_playlists.clone();
         }
         let playlists = playlists.items.unwrap();
 

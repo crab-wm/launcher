@@ -1,6 +1,6 @@
 use std::borrow::Borrow;
 use std::cell::RefCell;
-use std::process::exit;
+use std::process::{Command, exit};
 
 use gtk::{CustomFilter, FilterListModel, gio, SingleSelection};
 use gtk::gio::AppInfo;
@@ -8,11 +8,9 @@ use gtk::glib::{clone, MainContext};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 
-use crate::{
-    DATA_MUSIC_SPOTIFY_TEMP_FILE, DATA_MUSIC_YOUTUBE_TEMP_FILE, MusicData, PLACEHOLDER_MUSIC,
-    PLACEHOLDER_PROGRAMS, TEMP_DATA, Window,
-};
+use crate::{CONFIG, MusicData, TEMP_DATA, Window};
 use crate::config::{ConfigMusic, ConfigMusicService};
+use crate::consts::*;
 use crate::crab_tabs::imp::CrabTab;
 use crate::music_object::MusicObject;
 
@@ -185,5 +183,41 @@ pub fn get_temp_music_file_path(config: Option<&ConfigMusic>) -> Option<String> 
     match config.as_ref().unwrap().service {
         ConfigMusicService::Youtube => Some(DATA_MUSIC_YOUTUBE_TEMP_FILE.to_string()),
         ConfigMusicService::Spotify => Some(DATA_MUSIC_SPOTIFY_TEMP_FILE.to_string()),
+    }
+}
+
+pub fn ellipse_string(string: &str, max: usize) -> String {
+    if string.len() > max {
+        format!("{}...", &string[0..max].trim_end())
+    } else {
+        string.into()
+    }
+}
+
+pub fn get_current_song() -> (Option<String>, Option<String>) {
+    let config = CONFIG.lock().unwrap();
+    let should_show_meta = config.music.as_ref().map(|music_config| music_config.show_meta.unwrap_or(false));
+
+    if !should_show_meta.unwrap_or(false) { return (None, None); }
+
+    let playerctl_metadata = Command::new("playerctl").arg("metadata").output();
+    if playerctl_metadata.is_err() { return (None, None); }
+    let playerctl_metadata = String::from_utf8(playerctl_metadata.unwrap().stdout).unwrap();
+
+    let lines = playerctl_metadata
+        .lines()
+        .filter(|line| line.contains("xesam:artist") || line.contains("xesam:title"))
+        .map(|line| line.split("xesam:artist").nth(1).unwrap_or(line.split("xesam:title").nth(1).unwrap_or_default()))
+        .filter(|line| !line.is_empty())
+        .map(|line| line.trim())
+        .collect::<Vec<&str>>();
+
+    if lines.len() < 2 {
+        (None, None)
+    } else {
+        (
+            Some(ellipse_string(lines[1].clone(), MAX_CHARS_IN_SONG_TITLE)),
+            Some(ellipse_string(lines[0].clone(), MAX_CHARS_IN_SONG_ARTIST))
+        )
     }
 }

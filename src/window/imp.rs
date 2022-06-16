@@ -1,20 +1,25 @@
-use crate::consts::*;
-use crate::crab_tabs::CrabTabs;
-use crate::gio::glib::{ParamSpec, Value};
+use std::cell::{Cell, RefCell};
+
 use glib::subclass::InitializingObject;
+use gtk::{CustomFilter, gio, glib, ScrolledWindow, SingleSelection};
+use gtk::{CompositeTemplate, Entry, ListView};
 use gtk::glib::{ParamFlags, ParamSpecBoolean};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gio, glib, CustomFilter, ScrolledWindow, SingleSelection};
-use gtk::{CompositeTemplate, Entry, ListView};
 use once_cell::sync::Lazy;
-use std::cell::{Cell, RefCell};
+
+use crate::consts::*;
+use crate::crab_tabs::CrabTabs;
+use crate::gio::glib::{ParamSpec, Value};
+use crate::song_info::SongInfo;
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/wm/crab/launcher/window.ui")]
 pub struct Window {
     #[template_child]
     pub entry: TemplateChild<Entry>,
+    #[template_child]
+    pub song_info: TemplateChild<SongInfo>,
     #[template_child]
     pub scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]

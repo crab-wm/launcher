@@ -56,7 +56,19 @@ impl Window {
         self.imp().current_selection_model.replace(selection_model);
 
         self.imp().tabs.connect_notify_local(Some("current-tab"), clone!(@weak self as window => move |crab_tabs, _| {
-            let (filter, selection_model) = setup_list_model(&window, &match crab_tabs.property::<i32>("current-tab") {
+            let current_tab = crab_tabs.property::<i32>("current-tab");
+
+            if current_tab == CrabTab::Music.to_value() {
+                let (title, artist) = get_current_song();
+
+                window.imp().song_info.set_visible(true);
+                window.imp().song_info.set_song_data(title, artist);
+            }
+            else {
+                window.imp().song_info.set_visible(false);
+            }
+
+            let (filter, selection_model) = setup_list_model(&window, &match current_tab {
                 0 => CrabTab::Programs,
                 1 => CrabTab::Music,
                 _ => CrabTab::Programs

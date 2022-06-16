@@ -1,6 +1,9 @@
 use std::fs;
 
+use gtk::subclass::prelude::ObjectSubclassIsExt;
+
 use crate::{CONFIG, MusicData};
+use crate::music_object::MusicObject;
 use crate::utils::get_temp_music_file_path;
 
 pub struct TempData {
@@ -40,6 +43,14 @@ impl TempData {
         }
 
         serde_json::from_reader::<_, Vec<MusicData>>(data_file.unwrap()).unwrap_or_default()
+    }
+
+    pub fn get_playlists_objs(&self) -> Vec<MusicObject> {
+        self.playlists.iter().map(|data| {
+            let music_object = MusicObject::new();
+            music_object.imp().data.replace(data.clone());
+            music_object
+        }).collect()
     }
 
     pub fn refresh(&mut self) {

@@ -44,6 +44,7 @@ mod music_service;
 mod temp_data;
 mod utils;
 mod window;
+mod song_info;
 
 pub static HISTORY: Lazy<Mutex<History>> = Lazy::new(|| Mutex::new(History::new()));
 

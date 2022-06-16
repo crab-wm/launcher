@@ -34,11 +34,14 @@
                     </object>
                 </child>
                 <child>
+                    <object class="SongInfo" id="song_info"/>
+                </child>
+                <child>
                     <object class="GtkScrolledWindow" id="scrolled_window">
                         <property name="hscrollbar-policy">never</property>
                         <property name="vexpand">true</property>
                         <child>
-                            <object class="GtkListView" id="crab_items_list" />
+                            <object class="GtkListView" id="crab_items_list"/>
                         </child>
                     </object>
                 </child>

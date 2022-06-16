@@ -4,5 +4,7 @@
         <file compressed="true" preprocess="xml-stripblanks">window.ui</file>
         <file compressed="true" preprocess="xml-stripblanks">crab_row.ui</file>
         <file compressed="true" preprocess="xml-stripblanks">crab_tabs.ui</file>
+        <file compressed="true" preprocess="xml-stripblanks">song_info.ui</file>
+        <file>images/song_icon.png</file>
     </gresource>
 </gresources>

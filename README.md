@@ -33,6 +33,9 @@ To fetch playlists use `crab-launcher --fetch`. It's going to read config file a
 informations and for the
 given service. **You should run this at least once before running the launcher for the first time.**
 
+Crab Launcher also shows you your curretly played song. If you want to see it, you'll have to enable it in the config
+and install `playerctl` package.
+
 ### 1. Spotify
 
 #### How to sign in?
@@ -45,6 +48,10 @@ emulator.
 
 Spotify will fetch your playlists every time you run the daemon service (unless the session finishes). If your playlists
 are not up to date, it means you have to run `crab-launcher --fetch` command again.
+
+#### Requirements
+
+To run a playlist, you have to have `spotify` in your path.
 
 ### 2. YouTube
 
@@ -69,19 +76,15 @@ Here are some screenshots of this app.
 ## Troubleshooting
 
 #### 1. My launcher will not launch! It shows me an error: "Could not find configuration file for the application. Make sure you have a `~/.config/crab/launcher_def.yaml` file."
-
 - Copy and paste code from below into `~/.config/crab/launcher_def.yaml` and `~/.config/crab/launcher.yaml` file.
 
 #### 2. My launcher will not launch! It shows me an error: "Could not read configuration file. Make sure you have a `~/.config/crab/launcher_def.yaml` file and it's properly formatted."
-
 - Check syntax of your configuration file.
 
 #### 3. My playlists are not the same as on my account.
-
 - You have to update them manually (probably because user session has expired). To do this, run `crab-launcher --fetch`.
 
 #### 4. My launcher does not read my config.
-
 - You have to restart the daemon. To do this, run `killall crab-launcher && crab-launcher --daemon`.
 
 ## Default config
@@ -102,6 +105,8 @@ opacity: 1.0
 music:
   # Currently available options: `youtube`, `spotify`
   service: "youtube"
+  # Set to `false` if you don't want to see currently playing music
+  show_meta: false
 ```
 
 ## Usage

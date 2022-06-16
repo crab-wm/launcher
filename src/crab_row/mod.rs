@@ -4,6 +4,7 @@ use gtk::subclass::prelude::*;
 
 use crate::crab_row::imp::CrabRowExt;
 use crate::MAX_CHARS_IN_ROW;
+use crate::utils::ellipse_string;
 
 pub mod imp;
 
@@ -27,14 +28,7 @@ impl CrabRow {
         let imp = self.imp();
 
         let name = &crab_row_info.get_name();
-        imp.name.set_text(
-            (if name.len() > MAX_CHARS_IN_ROW {
-                format!("{}...", &name[0..MAX_CHARS_IN_ROW].trim_end())
-            } else {
-                name.into()
-            })
-                .as_str(),
-        );
+        imp.name.set_text(&ellipse_string(name, MAX_CHARS_IN_ROW));
 
         if let Some(icon) = crab_row_info.get_icon() {
             imp.image.set_from_gicon(&icon);

@@ -42,6 +42,8 @@ opacity: 1.0
 music:
   # Currently available options: `youtube`, `spotify`
   service: \"youtube\"
+  # Set to `false` if you don't want to see currently playing music
+  show_meta: false
 ";
 
 pub const ERROR_DAEMON: &str =
@@ -64,6 +66,8 @@ pub const KEY_ENTER: u32 = 36;
 pub const KEY_TAB: u32 = 23;
 
 pub const MAX_CHARS_IN_ROW: usize = 32;
+pub const MAX_CHARS_IN_SONG_TITLE: usize = 16;
+pub const MAX_CHARS_IN_SONG_ARTIST: usize = 48;
 
 pub const PLACEHOLDER_PROGRAMS: &str = "Search for an app...";
 pub const PLACEHOLDER_MUSIC: &str = "Search for a playlist...";

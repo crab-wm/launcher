@@ -9,7 +9,7 @@ use rspotify::clients::mutex::Mutex;
 use rspotify::model::{Page, SimplifiedPlaylist};
 use rspotify::prelude::{BaseClient, OAuthClient};
 
-use crate::{ConfigMusicService, DATA_MUSIC_SPOTIFY_CACHE_FILE, MusicData, MusicServiceExt};
+use crate::{ConfigMusicService, DATA_MUSIC_SPOTIFY_CACHE_FILE, MusicData, MusicServiceExt, TEMP_DATA};
 use crate::music_object::MusicObject;
 
 trait Flatten<T> {
@@ -94,13 +94,15 @@ impl SpotifyService {
 #[async_trait(? Send)]
 impl MusicServiceExt for SpotifyService {
     async fn get_all_playlists(&mut self) -> Vec<MusicObject> {
+        let old_playlists = &TEMP_DATA.lock().unwrap().get_playlists_objs();
+
         let url = self.auth.get_authorize_url(None).unwrap();
         let mut token_cache = self.auth.read_token_cache(false).await;
         let token_cache_error =
             token_cache.is_err() || token_cache.as_ref().unwrap_or(&None).is_none();
 
         if token_cache_error && !self.should_force_fetch {
-            return vec![];
+            return old_playlists.clone();
         }
 
         if token_cache_error && self.should_force_fetch {
@@ -119,7 +121,7 @@ impl MusicServiceExt for SpotifyService {
 
         if playlists.is_err() {
             if !self.should_force_fetch {
-                return vec![];
+                return old_playlists.clone();
             }
 
             let mut token_request = self.auth.prompt_for_token(url.as_str()).await;
@@ -142,7 +144,7 @@ impl MusicServiceExt for SpotifyService {
         }
 
         if playlists.is_err() {
-            return vec![];
+            return old_playlists.clone();
         }
 
         let playlists = playlists.unwrap();

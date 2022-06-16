@@ -74,3 +74,13 @@ row:selected > box {
     font-weight: bold;
     background: @accent-color;
 }
+
+.song-title {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.song-image {
+    padding: 20px;
+    background: @accent-color;
+}

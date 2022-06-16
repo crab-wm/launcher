@@ -22,6 +22,7 @@ impl Default for ConfigMusicService {
 #[derive(Deserialize, Debug, Default)]
 pub struct ConfigMusic {
     pub service: ConfigMusicService,
+    pub show_meta: Option<bool>
 }
 
 #[derive(Deserialize, Debug, Default)]
