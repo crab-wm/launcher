@@ -1,7 +1,7 @@
 # ![Logo](https://raw.githubusercontent.com/crab-wm/launcher/main/.github/assets/crab_launcher_big.svg)
 
 ## Crab Launcher
-Crab Launcher is a simple and modern Crab app launcher whitten in Rust programming language.
+Crab Launcher is a simple and modern Crab app launcher written in Rust programming language.
 
 ## How to use it?
 Download binary from [here](https://github.com/crab-wm/launcher/releases) and bind it in your favourite window manager!
