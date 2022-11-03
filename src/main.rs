@@ -68,7 +68,7 @@ async fn main() {
             param => {
                 show_help();
                 println!();
-                display_err(format!("Uknown parameter: {}", param).as_str());
+                display_err(format!("Unknown parameter: {}", param).as_str());
             }
         }
 

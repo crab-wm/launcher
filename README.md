@@ -30,7 +30,7 @@ Crab Launcher has the ability tu play playlists fetched from your YouTube or Spo
 choose your favourite music service and put it in `music.service` section inside of the config file.
 
 To fetch playlists use `crab-launcher --fetch`. It's going to read config file and fetch playlists with given
-informations and for the
+information and for the
 given service. **You should run this at least once before running the launcher for the first time.**
 
 ### 1. Spotify
